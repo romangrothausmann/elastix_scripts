@@ -8,6 +8,7 @@ import glob
 # Instantiate SimpleElastix
 selx = sitk.SimpleElastix()
 stfx = sitk.SimpleTransformix()
+selx.LogToFileOn()
 selx.LogToConsoleOff()
 stfx.LogToConsoleOff()
 
@@ -26,6 +27,12 @@ for idx, FN in enumerate(FNs):
     FN1= FN
     FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
     FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
+    DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
+
+    
+    if not os.path.exists(DNl):
+        os.makedirs(DNl)
+    selx.SetOutputDirectory(DNl)
 
     print("\r%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
     sys.stdout.flush() # essential with \r !
