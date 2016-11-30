@@ -8,6 +8,8 @@ import glob
 # Instantiate SimpleElastix
 selx = sitk.SimpleElastix()
 stfx = sitk.SimpleTransformix()
+selx.LogToConsoleOff()
+stfx.LogToConsoleOff()
 
 selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 selx.PrintParameterMap()
@@ -25,26 +27,23 @@ for idx, FN in enumerate(FNs):
     FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
     FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
 
+    print("\r%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
+    sys.stdout.flush() # essential with \r !
+    
     if idx == 0:
         sitk.WriteImage(sitk.Cast(sitk.ReadImage(FN1), sitk.sitkUInt8), FNof)
         continue
 
-    # Read Input
     fI= sitk.ReadImage(FN0)
     mI= sitk.ReadImage(FN1)
 
     selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
     selx.SetMovingImage(mI)
-
-    # Perform registration
-    selx.LogToConsoleOff()
     selx.Execute()
-
 
     tM= selx.GetTransformParameterMap(0)
     if idx > 1:
         tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
-    selx.PrintParameterMap(tM)
 
     stfx.AddTransformParameterMap(tM)
     stfx.SetMovingImage(mI)
