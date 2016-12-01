@@ -13,7 +13,6 @@ selx.LogToConsoleOff()
 stfx.LogToConsoleOff()
 
 selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
-selx.PrintParameterMap()
 
 FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
 FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
@@ -48,11 +47,10 @@ for idx, FN in enumerate(FNs):
     selx.SetMovingImage(mI)
     selx.Execute()
 
-    tM= selx.GetTransformParameterMap(0)
+    stfx.AddTransformParameterMap( selx.GetTransformParameterMap(0) )
     if idx > 1:
-        tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
+        stfx.AddTransformParameterMap( selx.ReadParameterFile( str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ) )
 
-    stfx.AddTransformParameterMap(tM)
     stfx.SetMovingImage(mI)
     stfx.Execute()
 
