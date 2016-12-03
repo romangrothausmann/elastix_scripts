@@ -45,6 +45,7 @@ for idx, FN in enumerate(FNs):
     mI= sitk.ReadImage(FN1)
 
     selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
+    selx.SetFixedMask(fI != 0)
     selx.SetMovingImage(mI)
     selx.Execute()
     sitk.WriteImage(sitk.Cast(selx.GetResultImage(), sitk.sitkUInt8), FNof)
