@@ -7,13 +7,10 @@ import glob
 
 # Instantiate SimpleElastix
 selx = sitk.SimpleElastix()
-stfx = sitk.SimpleTransformix()
 selx.LogToFileOn()
 selx.LogToConsoleOff()
-stfx.LogToConsoleOff()
 
 selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
-selx.PrintParameterMap()
 
 FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
 FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
@@ -40,6 +37,9 @@ for idx, FN in enumerate(FNs):
     if idx == 0:
         sitk.WriteImage(sitk.Cast(sitk.ReadImage(FN1), sitk.sitkUInt8), FNof)
         continue
+    else:
+        FN0= sys.argv[2] + "/" + os.path.splitext(FN0)[0] + ".tif"
+    
 
     fI= sitk.ReadImage(FN0)
     mI= sitk.ReadImage(FN1)
@@ -47,16 +47,7 @@ for idx, FN in enumerate(FNs):
     selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
     selx.SetMovingImage(mI)
     selx.Execute()
+    sitk.WriteImage(sitk.Cast(selx.GetResultImage(), sitk.sitkUInt8), FNof)
 
-    tM= selx.GetTransformParameterMap(0)
-    if idx > 1:
-        tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
-
-    stfx.AddTransformParameterMap(tM)
-    stfx.SetMovingImage(mI)
-    stfx.Execute()
-
-    # Write result image
-    sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), sitk.sitkUInt8), FNof)
     selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
 
