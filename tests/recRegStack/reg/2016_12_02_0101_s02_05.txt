@@ -1,4 +1,4 @@
-(CenterOfRotationPoint 401.515991 403.016998)
+(CenterOfRotationPoint 368.071991 404.674988)
 (CompressResultImage "false")
 (DefaultPixelValue 0.000000)
 (Direction 1.000000 0.000000 0.000000 1.000000)
@@ -19,5 +19,5 @@
 (Size 800.000000 800.000000)
 (Spacing 1.000000 1.000000)
 (Transform "EulerTransform")
-(TransformParameters 0.003680 -17.990200 -1.181600)
+(TransformParameters -0.163046 38.892200 -23.594700)
 (UseDirectionCosines "true")
