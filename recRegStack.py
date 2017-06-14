@@ -47,7 +47,6 @@ for idx, FN in enumerate(FNs):
     selx.Execute()
 
     if idx > 1:
-        stfx.SetTransformParameterMap( selx.ReadParameterFile( str(os.path.splitext( sys.argv[2] + "/" + FN0 )[0] + ".txt") ) )
         stfx.AddTransformParameterMap( selx.GetTransformParameterMap(0) ) # seems only last Transfrom is used, not a combination
     else:
         stfx.SetTransformParameterMap( selx.GetTransformParameterMap(0) )
