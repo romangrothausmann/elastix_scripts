@@ -10,6 +10,6 @@ test : reg/
 clean:
 	-rm -rv reg/
 
-reg/ : $(FNs) parameterFile.txt
+reg/ : parameterFile.txt
 	PYTHONPATH=/opt/SimpleElastix/lib/python/:$$PYTHONPATH \
-		python ../../recRegStack.py "sMR3006g_OT1_s00[0-9].png" reg/ parameterFile.txt
+		python ../../recRegStack.py "*.png" reg/ parameterFile.txt
