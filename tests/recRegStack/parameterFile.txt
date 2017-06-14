@@ -11,8 +11,8 @@
 (FixedImagePyramid "FixedSmoothingImagePyramid")
 (MovingImagePyramid "MovingSmoothingImagePyramid")
 
-// (Optimizer "AdaptiveStochasticGradientDescent")
-(Optimizer "RegularStepGradientDescent")
+(Optimizer "AdaptiveStochasticGradientDescent")
+// (Optimizer "RegularStepGradientDescent")
 
 (Transform "EulerTransform")
 // (Metric "AdvancedMattesMutualInformation")
@@ -27,8 +27,8 @@
 // (AutomaticTransformInitializationMethod "Origins")
 
 
-(NumberOfResolutions 4)
-(ImagePyramidSchedule  256 256  128 128  64 64  32 32)
+(NumberOfResolutions 2)
+(ImagePyramidSchedule  64 64  32 32)
 
 
 (MaximumNumberOfIterations 1000 500 300 200)
