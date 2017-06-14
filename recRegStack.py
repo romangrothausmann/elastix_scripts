@@ -6,7 +6,7 @@ import os
 import glob
 
 # Instantiate SimpleElastix
-selx = sitk.SimpleElastix()
+selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
 selx.LogToFileOn()
 selx.LogToConsoleOff()
 
