@@ -4,6 +4,7 @@ import SimpleITK as sitk
 import sys
 import os
 import glob
+import re
 
 ### BEGIN https://stackoverflow.com/questions/4675728/redirect-stdout-to-a-file-in-python#22434262
 
@@ -90,6 +91,17 @@ for idx, FN in enumerate(FNs):
     with open(elastixLogPath, 'w') as f, stdout_redirected(f):
         selx.Execute()
     f.close()
+
+    finalMetricValue= 0
+    with open(elastixLogPath) as f:
+        m= re.search('Final metric value  = (?P<value>[+-.0-9]{9})', f.read()) # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+    f.close()
+    if m:
+        try:
+            finalMetricValue= float(m.group('value'))
+        except:
+            raise Exception('Final metric value not found in "elastix.log".')
+    print(finalMetricValue)
 
     tM= selx.GetTransformParameterMap(0)
     if idx > 1:
