@@ -12,4 +12,4 @@ clean:
 
 reg/ : parameterFile.txt
 	PYTHONPATH=/opt/SimpleElastix/lib/python/:$$PYTHONPATH \
-		python ../../recRegStack.py "*.png" reg/ parameterFile.txt
+		python ../../recRegStack.py "*.png" reg/ parameterFile.txt | tee recRegStack.out
