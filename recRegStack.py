@@ -50,7 +50,7 @@ stfx.LogToFileOff()
 stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
 
 selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
-selx.PrintParameterMap()
+# selx.PrintParameterMap()
 
 FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
 FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
@@ -97,7 +97,8 @@ for idx, FN in enumerate(FNs):
 
     stfx.AddTransformParameterMap(tM)
     stfx.SetMovingImage(mI)
-    stfx.Execute()
+    with stdout_redirected(): # siclence stfx.Execute()
+        stfx.Execute()
 
     # Write result image
     sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), sitk.sitkUInt8), FNof)
