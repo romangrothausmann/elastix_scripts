@@ -27,8 +27,8 @@
 // (AutomaticTransformInitializationMethod "Origins")
 
 
-(NumberOfResolutions 2)
-(ImagePyramidSchedule  64 64  32 32)
+(NumberOfResolutions 4)
+(ImagePyramidSchedule  64 64  32 32  16 16  8 8 )
 
 
 (MaximumNumberOfIterations 1000 500 300 200)
