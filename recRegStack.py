@@ -46,13 +46,17 @@ for idx, FN in enumerate(FNs):
     selx.SetMovingImage(mI)
     selx.Execute()
 
-    if idx > 1:
-        stfx.AddTransformParameterMap( selx.GetTransformParameterMap(0) ) # seems only last Transfrom is used, not a combination
-    else:
-        stfx.SetTransformParameterMap( selx.GetTransformParameterMap(0) )
+    tM= selx.GetTransformParameterMap(0)
+    tM.erase('InitialTransformParametersFileName') # http://lists.bigr.nl/pipermail/elastix/2016-December/002431.html
 
-    print stfx.GetNumberOfTransformParameterMaps()
-    
+    if idx > 0:
+        stfx.AddTransformParameterMap(tM) # seems only last Transfrom is used, not a combination
+    else:
+        stfx.SetTransformParameterMap(tM)
+
+    # print stfx.GetNumberOfTransformParameterMaps()
+    # stfx.PrintParameterMap(stfx.GetTransformParameterMap())
+        
     stfx.SetMovingImage(mI)
     stfx.Execute()
 
