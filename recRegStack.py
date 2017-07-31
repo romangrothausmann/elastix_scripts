@@ -47,7 +47,7 @@ selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix
 selx.LogToFileOff()
 selx.LogToConsoleOn()
 
-selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+pM= selx.ReadParameterFile(str(sys.argv[3])) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 # selx.PrintParameterMap()
 
 FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
@@ -67,6 +67,7 @@ for idx, FN in enumerate(FNs):
     FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
     FN1= FN
     FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
+    FNit= os.path.splitext(FN1)[0] + ".txt"
     FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
     DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
 
@@ -95,6 +96,11 @@ for idx, FN in enumerate(FNs):
     selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
     selx.SetFixedMask(fI != 0)
     selx.SetMovingImage(mI)
+    pM.erase('InitialTransformParametersFileName')
+    selx.SetParameterMap(pM)
+    if os.path.isfile(FNit):
+        selx.SetInitialTransformParameterFileName(FNit)
+        print selx.GetInitialTransformParameterFileName()
     with open(elastixLogPath, 'w') as f, stdout_redirected(f):
         selx.Execute()
     f.close()
