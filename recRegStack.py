@@ -55,9 +55,15 @@ FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
 if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
     os.makedirs(FNo)
 
-## copy first file as is or transform with identity
+start= int(sys.argv[4])
 
+## copy first file as is or transform with identity
 for idx, FN in enumerate(FNs):
+
+    ## skip upto start:
+    if(idx < start):
+        continue
+    
     FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
     FN1= FN
     FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
