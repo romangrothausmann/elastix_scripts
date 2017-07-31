@@ -42,17 +42,6 @@ def stdout_redirected(to=os.devnull, stdout=None):
 ### END https://stackoverflow.com/questions/4675728/redirect-stdout-to-a-file-in-python#22434262
 
 
-# Instantiate SimpleElastix
-selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-stfx = sitk.TransformixImageFilter()
-selx.LogToFileOff()
-selx.LogToConsoleOn()
-stfx.LogToFileOff()
-stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
-
-selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
-# selx.PrintParameterMap()
-
 FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
 FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
 if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
@@ -73,7 +62,17 @@ for idx, FN in enumerate(FNs):
     FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
     DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
 
+    # Instantiate SimpleElastix
+    selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
+    stfx = sitk.TransformixImageFilter()
     
+    selx.LogToFileOff()
+    selx.LogToConsoleOn()
+    stfx.LogToFileOff()
+    stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
+
+    selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+
     if not os.path.exists(DNl):
         os.makedirs(DNl)
     selx.SetOutputDirectory(DNl)
