@@ -2,6 +2,7 @@
 
 import SimpleITK as sitk
 import sys
+import argparse
 import os
 import glob
 import re
@@ -43,13 +44,26 @@ def stdout_redirected(to=os.devnull, stdout=None):
 
 
 def main():
+    
+    usage_text =  "Run SimpleElastix sequentially on series images:"
+    usage_text +=  __file__ + " [options]"
+    
+    parser = argparse.ArgumentParser(description=usage_text)
 
-    FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
-    FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
+    parser.add_argument("-i", "--inputPattern", dest="input", metavar='GlobPattern', required=True, help="Glob-pattern for input files.")
+    parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
+    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
+    parser.add_argument("-s", "--start", dest="start", type=int, required=False, help="Skip images before Start value.")
+
+
+    args = parser.parse_args()
+
+    FNs= sorted( glob.glob(args.input) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
+    FNo= args.output # FNo= os.path.abspath(FNs[0]) + "/reg/"
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
-    start= int(sys.argv[4])
+    start= args.start
 
     ## copy first file as is or transform with identity
     for idx, FN in enumerate(FNs):
@@ -60,17 +74,17 @@ def main():
 
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
-        FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
+        FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
         FNit= os.path.splitext(FN1)[0] + ".txt"
-        FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
-        DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
+        FNt= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
+        DNl= FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
         # Instantiate SimpleElastix
         selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
         selx.LogToFileOff()
         selx.LogToConsoleOn()
 
-        pM= selx.ReadParameterFile(str(sys.argv[3])) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+        pM= selx.ReadParameterFile(args.PF) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
@@ -87,7 +101,7 @@ def main():
             sitk.WriteImage(sitk.Cast(sitk.ReadImage(FN1), sitk.sitkUInt8), FNof)
             continue
         else:
-            FN0= sys.argv[2] + "/" + os.path.splitext(FN0)[0] + ".tif"
+            FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
 
         fI= sitk.ReadImage(FN0)
