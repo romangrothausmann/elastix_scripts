@@ -60,12 +60,14 @@ def main():
     args = parser.parse_args()
 
     FNs= sorted( glob.glob(args.input) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
-    FNs= [x for x in FNs if x not in args.skip] # removing by index (less suitable): [FNs.pop(x) for x in args.skip]
+    if args.skip:
+        FNs= [x for x in FNs if x not in args.skip] # removing by index (less suitable): [FNs.pop(x) for x in args.skip]
     try:
         start= FNs.index(args.start) # can be used as FNs= FNs[start:] but not ideal for referencing idx-1
     except ValueError, e:
         start= None
-        print "Start not found!"
+        if args.start:
+            print "Start not found!"
     
     FNo= args.output # FNo= os.path.abspath(FNs[0]) + "/reg/"
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary

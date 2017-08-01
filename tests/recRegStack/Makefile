@@ -5,11 +5,11 @@ FNs:= $(SLICES:%=sMR3006g_OT1_s%.png)
 .PHONY: test clean
 
 
-test : reg/
+test : reg
 
 clean:
 	-rm -rv reg/
 
-reg/ : parameterFile.txt
+reg : parameterFile.txt
 	PYTHONPATH=/opt/SimpleElastix/lib/python/:$$PYTHONPATH \
-		python ../../recRegStack.py "*.png" reg/ parameterFile.txt | tee recRegStack.out
+		python ../../recRegStack.py -i "*.png" -o $@ -p parameterFile.txt | tee $@.out
