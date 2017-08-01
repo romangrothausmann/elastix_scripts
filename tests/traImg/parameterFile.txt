@@ -1,0 +1,6 @@
+(CenterOfRotationPoint 400 400) // EulerTransform specific
+(NumberOfParameters 3.000000)
+(Transform "EulerTransform")
+(TransformParameters -0.78539816339744830962 -100 -200) // -45° (in rad), get values from e.g. ITK-Snap-3.6, vv or midas (IMOD)
+
+(Size 1000 1000) // essential for traImg.py (default "inf")
