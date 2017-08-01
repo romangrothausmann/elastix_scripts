@@ -54,11 +54,14 @@ def main():
     parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
     parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
     parser.add_argument("-s", "--start", dest="start", type=int, required=False, help="Skip images before Start value.")
+    parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
 
 
     args = parser.parse_args()
 
     FNs= sorted( glob.glob(args.input) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
+    FNs= [x for x in FNs if x not in args.skip] # indexing can be problematic: [FNs.pop(x) for x in args.skip]
+    
     FNo= args.output # FNo= os.path.abspath(FNs[0]) + "/reg/"
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
@@ -107,6 +110,8 @@ def main():
         fI= sitk.ReadImage(FN0)
         mI= sitk.ReadImage(FN1)
 
+        print FN0, FN1,
+        
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetFixedMask(fI != 0)
         selx.SetMovingImage(mI)
@@ -114,7 +119,7 @@ def main():
         selx.SetParameterMap(pM)
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
-            print selx.GetInitialTransformParameterFileName()
+            print selx.GetInitialTransformParameterFileName(),
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
             selx.Execute()
         f.close()
