@@ -28,6 +28,7 @@ def main():
 
     stfx.SetMovingImage(sitk.ReadImage(args.input))
     stfx.SetTransformParameterMap(selx.ReadParameterFile(args.PF))
+    stfx.SetTransformParameter('Size', map(str, stfx.GetMovingImage().GetSize())) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
     stfx.Execute()
     sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), sitk.sitkUInt8), args.output)
 

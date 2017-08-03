@@ -3,4 +3,4 @@
 (Transform "EulerTransform")
 (TransformParameters -0.78539816339744830962 -100 -200) // -45° (in rad), get values from e.g. ITK-Snap-3.6, vv or midas (IMOD)
 
-(Size 800 800) // essential for traImg.py (default "inf")
+// (Size 800 800) // essential if not set by traImg.py (default "inf")
