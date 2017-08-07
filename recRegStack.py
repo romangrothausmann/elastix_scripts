@@ -115,7 +115,7 @@ def main():
             itFNs.append(FNit);
         else:
             itFNs.append('NoInitialTransform')
-        itFNs.append('NoInitialTransform')
+        itFNs.append(FNlt)
 
         selx= []
         finalMetricValue= []

@@ -1,7 +1,7 @@
 (Transform "EulerTransform")
 (NumberOfParameters 3)
-(TransformParameters 0.016061 19.667716 -13.615056)
-(InitialTransformParametersFileName "NoInitialTransform")
+(TransformParameters -0.008194 10.509686 -19.564733)
+(InitialTransformParametersFileName "reg/2016_12_02_0101_s00_03.txt")
 (HowToCombineTransforms "Compose")
 
 // Image specific
@@ -17,7 +17,7 @@
 (UseDirectionCosines "true")
 
 // EulerTransform specific
-(CenterOfRotationPoint 395.3177976999 402.3397361926)
+(CenterOfRotationPoint 404.4758282154 408.2894138085)
 
 // ResampleInterpolator specific
 (ResampleInterpolator "FinalBSplineInterpolator")
