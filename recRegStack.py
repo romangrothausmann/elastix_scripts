@@ -168,29 +168,8 @@ def register(FNs, FNo, args, FNp= None):
         FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
         DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
-        # Instantiate SimpleElastix
-        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-        selx.LogToFileOff()
-        selx.LogToConsoleOn()
-        if args.NoT:
-            selx.SetNumberOfThreads(args.NoT)
-
-        ## combine/append (global) parameter maps for e.g. different transforms (rigid + deform):
-        ## could be done with sikt.ReadParameterFile before calling register(...) to avoid calling ReadParameterFile() for every iteration
-        ## individual adjustments from iPFs (*.pf.txt) only have to be applied to pMs
-        ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
-        ## http://simpleelastix.readthedocs.io/ParameterMaps.html
-        pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
-        for pf in args.PF:
-            pMs.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
-
         if not os.path.exists(DNl):
             os.makedirs(DNl)
-        selx.SetOutputDirectory(DNl)
-
-        elastixLog= os.path.splitext(FN1)[0] + ".log"
-        selx.SetLogFileName(elastixLog)
-        elastixLogPath= DNl + elastixLog
 
         print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
         sys.stdout.flush() # essential with \r !
@@ -214,6 +193,27 @@ def register(FNs, FNo, args, FNp= None):
             fI= toLuminance(sitk.ReadImage(FN0))
 
         print FN0, FN1,
+
+        # Instantiate SimpleElastix
+        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
+        selx.LogToFileOff()
+        selx.LogToConsoleOn()
+        if args.NoT:
+            selx.SetNumberOfThreads(args.NoT)
+
+        ## combine/append (global) parameter maps for e.g. different transforms (rigid + deform):
+        ## could be done with sikt.ReadParameterFile before calling register(...) to avoid calling ReadParameterFile() for every iteration
+        ## individual adjustments from iPFs (*.pf.txt) only have to be applied to pMs
+        ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
+        ## http://simpleelastix.readthedocs.io/ParameterMaps.html
+        pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
+        for pf in args.PF:
+            pMs.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+
+        elastixLog= os.path.splitext(FN1)[0] + ".log"
+        elastixLogPath= DNl + elastixLog
+        selx.SetLogFileName(elastixLog)
+        selx.SetOutputDirectory(DNl)
 
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mI)
