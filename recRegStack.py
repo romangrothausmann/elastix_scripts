@@ -110,12 +110,11 @@ def main():
 
         print FN0, FN1,
 
-        itFNs= []
+        itFNs= ['NoInitialTransform']
         if os.path.isfile(FNit): # use InitialTransformFile if it exists
             itFNs.append(FNit);
-        else:
-            itFNs.append('NoInitialTransform')
-        itFNs.append(FNlt)
+        if os.path.isfile(FNlt): # use last TransformFile if it exists
+            itFNs.append(FNlt)
 
         selx= []
         finalMetricValue= []

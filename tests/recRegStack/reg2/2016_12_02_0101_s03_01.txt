@@ -19,5 +19,5 @@
 (Size 800.000000 800.000000)
 (Spacing 1.000000 1.000000)
 (Transform "EulerTransform")
-(TransformParameters -0.195599 15.798600 -18.677299)
+(TransformParameters -0.196422 15.691600 -18.872101)
 (UseDirectionCosines "true")
