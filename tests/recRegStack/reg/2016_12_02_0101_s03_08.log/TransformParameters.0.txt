@@ -1,6 +1,6 @@
 (Transform "EulerTransform")
 (NumberOfParameters 3)
-(TransformParameters -0.120639 6.539285 23.387127)
+(TransformParameters -0.123326 7.293310 23.740509)
 (InitialTransformParametersFileName "NoInitialTransform")
 (HowToCombineTransforms "Compose")
 
@@ -17,7 +17,7 @@
 (UseDirectionCosines "true")
 
 // EulerTransform specific
-(CenterOfRotationPoint 398.4502649022 366.5059693388)
+(CenterOfRotationPoint 398.2095844100 366.2090583704)
 
 // ResampleInterpolator specific
 (ResampleInterpolator "FinalBSplineInterpolator")
