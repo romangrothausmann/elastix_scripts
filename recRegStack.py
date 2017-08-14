@@ -73,6 +73,7 @@ def main():
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
+    pM= sitk.ElastixImageFilter().ReadParameterFile(args.PF)
     FNlt=""
     ## copy first file as is or transform with identity
     for idx, FN in enumerate(FNs):
@@ -126,8 +127,6 @@ def main():
             selx[i].LogToConsoleOn()
             selx[i].SetOutputDirectory(DNl)
             selx[i].SetLogFileName(elastixLog)
-
-            pM= selx[i].ReadParameterFile(args.PF) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 
             selx[i].SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
             selx[i].SetFixedMask(fI != 0)
