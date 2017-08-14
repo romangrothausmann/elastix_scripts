@@ -199,6 +199,7 @@ def register(FNs, FNo, args, FNp= None):
             itFNs.append(FNit);
         else:
             itFNs.append('NoInitialTransform')
+        itFNs.append('NoInitialTransform')
 
         selx= []
         fMV= []
