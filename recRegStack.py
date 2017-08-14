@@ -73,6 +73,7 @@ def main():
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
+    FNlt=""
     ## copy first file as is or transform with identity
     for idx, FN in enumerate(FNs):
 
@@ -85,6 +86,7 @@ def main():
 
         ## skip upto start:
         if(idx < start):
+            FNlt= FNt
             continue
 
         if not os.path.exists(DNl):
@@ -107,43 +109,53 @@ def main():
         mI= sitk.ReadImage(FN1)
 
         print FN0, FN1,
-        
-        # Instantiate SimpleElastix
-        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-        selx.LogToFileOff()
-        selx.LogToConsoleOn()
-        selx.SetOutputDirectory(DNl)
-        selx.SetLogFileName(elastixLog)
 
-        pM= selx.ReadParameterFile(args.PF) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+        itFNs= []
+        if os.path.isfile(FNit): # use InitialTransformFile if it exists
+            itFNs.append(FNit);
+        else:
+            itFNs.append('NoInitialTransform')
 
-        selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-        selx.SetFixedMask(fI != 0)
-        selx.SetMovingImage(mI)
-        pM.erase('InitialTransformParametersFileName')
-        selx.SetParameterMap(pM)
-        if os.path.isfile(FNit):
-            selx.SetInitialTransformParameterFileName(FNit)
-            print selx.GetInitialTransformParameterFileName(),
-        with open(elastixLogPath, 'w') as f, stdout_redirected(f):
-            selx.Execute()
-        f.close()
+        selx= []
+        finalMetricValue= []
+        for i, itFN in enumerate(itFNs):
 
-        finalMetricValue= 0
-        with open(elastixLogPath) as f:
-            m= re.search('Final metric value  = (?P<value>[+-.0-9]{9})', f.read()) # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
-        f.close()
-        if m:
-            try:
-                finalMetricValue= float(m.group('value'))
-            except:
-                raise Exception('Final metric value not found in "elastix.log".')
-        print(finalMetricValue)
+            # Instantiate SimpleElastix
+            selx.append(sitk.ElastixImageFilter()) # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
+            selx[i].LogToFileOff()
+            selx[i].LogToConsoleOn()
+            selx[i].SetOutputDirectory(DNl)
+            selx[i].SetLogFileName(elastixLog)
 
-        # Write result image
-        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), sitk.sitkUInt8), FNof)
-        selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
+            pM= selx[i].ReadParameterFile(args.PF) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 
+            selx[i].SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
+            selx[i].SetFixedMask(fI != 0)
+            selx[i].SetMovingImage(mI)
+            selx[i].SetParameterMap(pM)
+            if os.path.isfile(itFN):
+                selx[i].SetInitialTransformParameterFileName(itFN)
+            print selx[i].GetInitialTransformParameterFileName(),
+            with open(elastixLogPath, 'w') as f, stdout_redirected(f):
+                selx[i].Execute()
+
+            finalMetricValue.append(0)
+            with open(elastixLogPath) as f:
+                m= re.search('Final metric value  = (?P<value>[+-.0-9]{9})', f.read()) # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+            f.close()
+            if m:
+                try:
+                    finalMetricValue[i]= float(m.group('value'))
+                except:
+                    raise Exception('Final metric value not found in "elastix.log".')
+            print finalMetricValue[i],
+
+        iMin= finalMetricValue.index(min(finalMetricValue)) # https://stackoverflow.com/a/2474030
+        print iMin
+       # Write result image
+        sitk.WriteImage(sitk.Cast(selx[iMin].GetResultImage(), sitk.sitkUInt8), FNof)
+        selx[iMin].WriteParameterFile(selx[iMin].GetTransformParameterMap(0), FNt)
+        FNlt= FNt
 
 if __name__ == "__main__":
     main()
