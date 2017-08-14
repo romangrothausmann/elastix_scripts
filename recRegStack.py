@@ -194,93 +194,105 @@ def register(FNs, FNo, args, FNp= None):
 
         print FN0, FN1,
 
-        # Instantiate SimpleElastix
-        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-        selx.LogToFileOff()
-        selx.LogToConsoleOn()
-        if args.NoT:
-            selx.SetNumberOfThreads(args.NoT)
-
-        ## combine/append (global) parameter maps for e.g. different transforms (rigid + deform):
-        ## could be done with sikt.ReadParameterFile before calling register(...) to avoid calling ReadParameterFile() for every iteration
-        ## individual adjustments from iPFs (*.pf.txt) only have to be applied to pMs
-        ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
-        ## http://simpleelastix.readthedocs.io/ParameterMaps.html
-        pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
-        for pf in args.PF:
-            pMs.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
-
-        elastixLog= os.path.splitext(FN1)[0] + ".log"
-        elastixLogPath= DNl + elastixLog
-        selx.SetLogFileName(elastixLog)
-        selx.SetOutputDirectory(DNl)
-
-        selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-        selx.SetMovingImage(mI)
-        selx.SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI)) # apply individual adjustments from iPFs (*.pf.txt)
-
-        if args.mask:
-            fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
-            fM.CopyInformation(fI) # essential for selx
-            xmin= args.mask[0]
-            xmax= args.mask[1]
-            ymin= args.mask[2]
-            ymax= args.mask[3]
-            mR= fM[xmin:xmax, ymin:ymax] == 0
-            fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
-            fM= fM & (fI != 0) # also disregard empty regions in fI
-            selx.SetFixedMask(fM)
-            # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+        itFNs= []
+        if os.path.isfile(FNit): # use InitialTransformFile if it exists
+            itFNs.append(FNit);
         else:
-            selx.SetFixedMask(fI != 0)
+            itFNs.append('NoInitialTransform')
 
-        ## set initial transform parameter file name for mIT (not effected by bug: https://github.com/SuperElastix/SimpleElastix/issues/121)
-        if os.path.isfile(FNit):
-            selx.SetInitialTransformParameterFileName(FNit)
-            print selx.GetInitialTransformParameterFileName(),
-
-        with open(elastixLogPath, 'w') as f, stdout_redirected(f):
-            selx.Execute()
-        f.close()
-
+        selx= []
         fMV= []
-        fMVs= []
-        cfMV= None
-        nM= None
-        mN= len(pMs)-1 # reverse parsing, so start with last pM
-        with open(elastixLogPath) as f:
-            for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
-                if not cfMV: # get "Final metric value" (fMV)
-                    m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', line) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
-                    if m:
-                        try:
-                            cfMV= m.group('value')
-                        except:
-                            raise Exception('Final metric value not found in "elastix.log".')
-                        fMV.append(cfMV)
-                        nM= len(pMs[mN]['Metric']) # number of metrices, avoids to get nM from tabel headers
-                else: # get line of fMV in table
-                    cols= line.split()
-                    if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
-                        if nM > 1:
-                            fMVs.append(cols[0:nM+2]) # overall metric and each individual metric
-                        else:
-                            fMVs.append(cols[0:nM+1]) # only overall metric
-                        cfMV= None # continue for next transform
-                        mN-=1 # previous pM
-        f.close()
-        for i in range(len(pMs)-1,-1,-1):
-            print fMVs[i][0], fMV[i], fMVs[i][1:],
-        print
+        for i, itFN in enumerate(itFNs):
+            # print >> sys.stderr, "reg #:", i # https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python
+
+            # Instantiate SimpleElastix
+            selx.append(sitk.ElastixImageFilter()) # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
+            selx[i].LogToFileOff()
+            selx[i].LogToConsoleOn()
+            if args.NoT:
+                selx[i].SetNumberOfThreads(args.NoT)
+
+            ## combine/append (global) parameter maps for e.g. different transforms (rigid + deform):
+            ## could be done with sikt.ReadParameterFile before calling register(...) to avoid calling ReadParameterFile() for every iteration
+            ## individual adjustments from iPFs (*.pf.txt) only have to be applied to pMs
+            ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
+            ## http://simpleelastix.readthedocs.io/ParameterMaps.html
+            pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
+            for pf in args.PF:
+                pMs.append(selx[i].ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+
+            elastixLog= os.path.splitext(FN1)[0] + ".log"
+            elastixLogPath= DNl + elastixLog
+            selx[i].SetLogFileName(elastixLog)
+            selx[i].SetOutputDirectory(DNl)
+
+            selx[i].SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
+            selx[i].SetMovingImage(mI)
+            selx[i].SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI)) # apply individual adjustments from iPFs (*.pf.txt)
+
+            if args.mask:
+                fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
+                fM.CopyInformation(fI) # essential for selx
+                xmin= args.mask[0]
+                xmax= args.mask[1]
+                ymin= args.mask[2]
+                ymax= args.mask[3]
+                mR= fM[xmin:xmax, ymin:ymax] == 0
+                fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
+                fM= fM & (fI != 0) # also disregard empty regions in fI
+                selx[i].SetFixedMask(fM)
+                # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+            else:
+                selx[i].SetFixedMask(fI != 0)
+
+            ## set initial transform parameter file name for mIT (not effected by bug: https://github.com/SuperElastix/SimpleElastix/issues/121)
+            if os.path.isfile(itFN):
+                selx[i].SetInitialTransformParameterFileName(itFN)
+                print selx[i].GetInitialTransformParameterFileName(),
+
+            with open(elastixLogPath, 'w') as f, stdout_redirected(f):
+                selx[i].Execute()
+            f.close()
+
+            fMVs= []
+            cfMV= None
+            nM= None
+            mN= len(pMs)-1 # reverse parsing, so start with last pM
+            with open(elastixLogPath) as f:
+                for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
+                    if not cfMV: # get "Final metric value" (fMV)
+                        m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', line) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+                        if m:
+                            try:
+                                cfMV= m.group('value')
+                            except:
+                                raise Exception('Final metric value not found in "elastix.log".')
+                            fMV.append(float(cfMV)) # float essential for min() to work as expected!
+                            nM= len(pMs[mN]['Metric']) # number of metrices, avoids to get nM from tabel headers
+                    else: # get line of fMV in table
+                        cols= line.split()
+                        if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
+                            if nM > 1:
+                                fMVs.append(cols[0:nM+2]) # overall metric and each individual metric
+                            else:
+                                fMVs.append(cols[0:nM+1]) # only overall metric
+                            cfMV= None # continue for next transform
+                            mN-=1 # previous pM
+            f.close()
+            for j in range(len(pMs)-1,-1,-1):
+                    print fMVs[j][0], fMV[i], fMVs[j][1:], # iterations,  overall final metric value (for reg. i, expecting only one per reg.), individual metric values
+ 
+        iMin= fMV.index(min(fMV)) # https://stackoverflow.com/a/2474030
+        print fMV[iMin] # print finally chosen metric (not index), easier to use by awk in CZIto3D eval
 
         # Write result image
-        rI= sitk.Cast(selx.GetResultImage(), PixelType) # rI should include cast to be comparable to those read from disk
+        rI= sitk.Cast(selx[iMin].GetResultImage(), PixelType) # rI should include cast to be comparable to those read from disk
         sitk.WriteImage(rI, FNof)
-        # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
+        # selx[iMin].WriteParameterFile(selx[iMin].GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
             sfI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(sitk.Cast(fI, sitk.sitkFloat32)) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
-            smI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(selx.GetResultImage()) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
+            smI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(selx[iMin].GetResultImage()) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
         
         if args.cb:
             sitk.WriteImage(sitk.CheckerBoard(sfI, smI, args.cb), FNof.replace(".tif", "_cb.png"))
