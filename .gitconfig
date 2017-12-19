@@ -1,0 +1,9 @@
+## to make use of this config run:
+## git config --local include.path ../.gitconfig
+## http://stackoverflow.com/questions/18329621/storing-git-config-as-part-of-the-repository#18330114
+
+## from http://www.akikoskinen.info/image-diffs-with-git/
+## ext. diff-cmd gets 6 (7) params: https://git-scm.com/docs/git#git-codeGITEXTERNALDIFFcode
+## ext. diff-cmd apparently ignored by gitk
+[diff "image"]
+	command =  sh -c 'echo $@ && compare $1 $4 png:- | montage -geometry +4+4 $1 - $4 png:- | display -title "$4" - '
