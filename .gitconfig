@@ -6,4 +6,4 @@
 ## ext. diff-cmd gets 6 (7) params: https://git-scm.com/docs/git#git-codeGITEXTERNALDIFFcode
 ## ext. diff-cmd apparently ignored by gitk
 [diff "image"]
-	command =  sh -c 'echo $@ && compare $1 $4 png:- | montage -geometry +4+4 $1 - $4 png:- | display -title "$4" - '
+	command =  sh -c 'echo $@ && convert $1 $4 -clone 0 -combine png:- | montage -geometry +4+4 $1 - $4 png:- | display -title "$4" - '
