@@ -79,12 +79,14 @@ for idx, FN in enumerate(FNs):
     print("\r%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
     sys.stdout.flush() # essential with \r !
     
+    mI= sitk.ReadImage(FN1)
+    PixelType= mI.GetPixelIDValue()
+        
     if idx == 0:
-        sitk.WriteImage(sitk.Cast(sitk.ReadImage(FN1), sitk.sitkUInt8), FNof)
+        sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
         continue
 
     fI= sitk.ReadImage(FN0)
-    mI= sitk.ReadImage(FN1)
 
     selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
     selx.SetMovingImage(mI)
@@ -113,6 +115,6 @@ for idx, FN in enumerate(FNs):
         stfx.Execute()
 
     # Write result image
-    sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), sitk.sitkUInt8), FNof)
+    sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
     selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
 
