@@ -105,15 +105,16 @@ def main():
         print("\r%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
         sys.stdout.flush() # essential with \r !
 
+        mI= sitk.ReadImage(FN1)
+        PixelType= mI.GetPixelIDValue()
+        
         if idx == 0:
-            sitk.WriteImage(sitk.Cast(sitk.ReadImage(FN1), sitk.sitkUInt8), FNof)
+            sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
             continue
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
-
         fI= sitk.ReadImage(FN0)
-        mI= sitk.ReadImage(FN1)
 
         print FN0, FN1,
         
@@ -141,7 +142,7 @@ def main():
         print(finalMetricValue)
 
         # Write result image
-        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), sitk.sitkUInt8), FNof)
+        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
         selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
 
 
