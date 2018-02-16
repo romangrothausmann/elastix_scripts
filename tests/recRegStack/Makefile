@@ -22,7 +22,7 @@ clean:
 	-rm -rv reg/
 
 reg/ : parameterFile.txt
-	python ../../recRegStack.py "*.png" reg/ parameterFile.txt | tee recRegStack.out
+	python ../../recRegStack.py "*.png" reg/ parameterFile.txt 0 | tee recRegStack.out
 
 reg/avg.png : reg/
 	$(convertIM) -average $</*.tif $@
