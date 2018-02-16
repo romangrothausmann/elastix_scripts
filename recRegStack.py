@@ -1,3 +1,8 @@
+## register a sieries of images concecutively
+### determin transform to register successive images,
+### apply former transform through InitialTransformParametersFileName,
+### then apply transform from registration
+
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
 import SimpleITK as sitk
