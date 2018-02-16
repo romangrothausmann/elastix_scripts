@@ -42,86 +42,91 @@ def stdout_redirected(to=os.devnull, stdout=None):
 ### END https://stackoverflow.com/questions/4675728/redirect-stdout-to-a-file-in-python#22434262
 
 
-FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
-FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
-if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
-    os.makedirs(FNo)
+def main():
 
-start= int(sys.argv[4])
+    FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
+    FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
+    if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
+        os.makedirs(FNo)
 
-stfx = sitk.TransformixImageFilter() # stfx instanciated inside loop causes segfault on second execution
-stfx.LogToFileOff()
-stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
+    start= int(sys.argv[4])
 
-## copy first file as is or transform with identity
-for idx, FN in enumerate(FNs):
+    stfx = sitk.TransformixImageFilter() # stfx instanciated inside loop causes segfault on second execution
+    stfx.LogToFileOff()
+    stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
 
-    ## skip upto start:
-    if(idx < start):
-        continue
-    
-    FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
-    FN1= FN
-    FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
-    FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
-    DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
+    ## copy first file as is or transform with identity
+    for idx, FN in enumerate(FNs):
 
-    # Instantiate SimpleElastix
-    selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-    
-    selx.LogToFileOff()
-    selx.LogToConsoleOn()
+        ## skip upto start:
+        if(idx < start):
+            continue
 
-    selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+        FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
+        FN1= FN
+        FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
+        FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
+        DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
 
-    if not os.path.exists(DNl):
-        os.makedirs(DNl)
-    selx.SetOutputDirectory(DNl)
+        # Instantiate SimpleElastix
+        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
 
-    elastixLog= os.path.splitext(FN1)[0] + ".log"
-    selx.SetLogFileName(elastixLog)
-    elastixLogPath= DNl + elastixLog
+        selx.LogToFileOff()
+        selx.LogToConsoleOn()
 
-    print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
-    sys.stdout.flush() # essential with \r !
-    
-    mI= sitk.ReadImage(FN1)
-    PixelType= mI.GetPixelIDValue()
-        
-    if idx == 0:
-        sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
-        print "plain copy"
-        continue
+        selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 
-    fI= sitk.ReadImage(FN0)
+        if not os.path.exists(DNl):
+            os.makedirs(DNl)
+        selx.SetOutputDirectory(DNl)
 
-    selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-    selx.SetMovingImage(mI)
-    with open(elastixLogPath, 'w') as f, stdout_redirected(f):
-        selx.Execute()
-    f.close()
+        elastixLog= os.path.splitext(FN1)[0] + ".log"
+        selx.SetLogFileName(elastixLog)
+        elastixLogPath= DNl + elastixLog
 
-    finalMetricValue= 0
-    with open(elastixLogPath) as f:
-        m= re.search('Final metric value  = (?P<value>[+-.0-9]{9})', f.read()) # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
-    f.close()
-    if m:
-        try:
-            finalMetricValue= float(m.group('value'))
-        except:
-            raise Exception('Final metric value not found in "elastix.log".')
-    print(finalMetricValue)
+        print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
+        sys.stdout.flush() # essential with \r !
 
-    tM= selx.GetTransformParameterMap(0)
-    if idx > 1:
-        tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
+        mI= sitk.ReadImage(FN1)
+        PixelType= mI.GetPixelIDValue()
 
-    stfx.AddTransformParameterMap(tM)
-    stfx.SetMovingImage(mI)
-    with stdout_redirected(): # siclence stfx.Execute()
-        stfx.Execute() # stfx instanciated inside loop causes segfault on second execution
+        if idx == 0:
+            sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
+            print "plain copy"
+            continue
 
-    # Write result image
-    sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
-    selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
+        fI= sitk.ReadImage(FN0)
 
+        selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
+        selx.SetMovingImage(mI)
+        with open(elastixLogPath, 'w') as f, stdout_redirected(f):
+            selx.Execute()
+        f.close()
+
+        finalMetricValue= 0
+        with open(elastixLogPath) as f:
+            m= re.search('Final metric value  = (?P<value>[+-.0-9]{9})', f.read()) # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+        f.close()
+        if m:
+            try:
+                finalMetricValue= float(m.group('value'))
+            except:
+                raise Exception('Final metric value not found in "elastix.log".')
+        print(finalMetricValue)
+
+        tM= selx.GetTransformParameterMap(0)
+        if idx > 1:
+            tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
+
+        stfx.AddTransformParameterMap(tM)
+        stfx.SetMovingImage(mI)
+        with stdout_redirected(): # siclence stfx.Execute()
+            stfx.Execute() # stfx instanciated inside loop causes segfault on second execution
+
+        # Write result image
+        sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
+        selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
+
+
+if __name__ == "__main__":
+    main()
