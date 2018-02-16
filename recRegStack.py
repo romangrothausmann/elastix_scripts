@@ -49,6 +49,10 @@ if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-c
 
 start= int(sys.argv[4])
 
+stfx = sitk.TransformixImageFilter() # stfx instanciated inside loop causes segfault on second execution
+stfx.LogToFileOff()
+stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
+
 ## copy first file as is or transform with identity
 for idx, FN in enumerate(FNs):
 
@@ -64,12 +68,9 @@ for idx, FN in enumerate(FNs):
 
     # Instantiate SimpleElastix
     selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-    stfx = sitk.TransformixImageFilter()
     
     selx.LogToFileOff()
     selx.LogToConsoleOn()
-    stfx.LogToFileOff()
-    stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
 
     selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 
@@ -117,7 +118,7 @@ for idx, FN in enumerate(FNs):
     stfx.AddTransformParameterMap(tM)
     stfx.SetMovingImage(mI)
     with stdout_redirected(): # siclence stfx.Execute()
-        stfx.Execute()
+        stfx.Execute() # stfx instanciated inside loop causes segfault on second execution
 
     # Write result image
     sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
