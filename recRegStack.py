@@ -2,6 +2,7 @@
 
 import SimpleITK as sitk
 import sys
+import argparse
 import os
 import glob
 import re
@@ -43,13 +44,34 @@ def stdout_redirected(to=os.devnull, stdout=None):
 
 
 def main():
+    
+    usage_text =  "Run SimpleElastix sequentially on series images:"
+    usage_text +=  __file__ + " [options]"
+    
+    parser = argparse.ArgumentParser(description=usage_text)
 
-    FNs= sorted( glob.glob(sys.argv[1]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
-    FNo= sys.argv[2] # FNo= os.path.abspath(FNs[0]) + "/reg/"
+    parser.add_argument("-i", "--inputPattern", dest="input", metavar='GlobPattern', required=True, help="Glob-pattern for input files.")
+    parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
+    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
+    parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
+    parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
+
+
+    args = parser.parse_args()
+
+    FNs= sorted( glob.glob(args.input) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
+    if args.skip:
+        FNs= [x for x in FNs if x not in args.skip] # removing by index (less suitable): [FNs.pop(x) for x in args.skip]
+    try:
+        start= FNs.index(args.start) # can be used as FNs= FNs[start:] but not ideal for referencing idx-1
+    except ValueError, e:
+        start= None
+        if args.start:
+            print "Start not found!"
+    
+    FNo= args.output # FNo= os.path.abspath(FNs[0]) + "/reg/"
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
-
-    start= int(sys.argv[4])
 
     stfx = sitk.TransformixImageFilter() # stfx instanciated inside loop causes segfault on second execution
     stfx.LogToFileOff()
@@ -64,9 +86,9 @@ def main():
 
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
-        FNof= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
-        FNt= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".txt"
-        DNl= sys.argv[2] + "/" + os.path.splitext(FN1)[0] + ".log/"
+        FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
+        FNt= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
+        DNl= FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
         # Instantiate SimpleElastix
         selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
@@ -74,7 +96,7 @@ def main():
         selx.LogToFileOff()
         selx.LogToConsoleOn()
 
-        selx.SetParameterMap(selx.ReadParameterFile(str(sys.argv[3]))) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+        selx.SetParameterMap(selx.ReadParameterFile(args.PF)) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
@@ -97,6 +119,8 @@ def main():
 
         fI= sitk.ReadImage(FN0)
 
+        print FN0, FN1,
+        
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mI)
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
@@ -116,7 +140,7 @@ def main():
 
         tM= selx.GetTransformParameterMap(0)
         if idx > 1:
-            tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( sys.argv[2] + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
+            tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( FNo + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
 
         stfx.AddTransformParameterMap(tM)
         stfx.SetMovingImage(mI)

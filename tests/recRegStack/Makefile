@@ -15,14 +15,15 @@ FNs:= $(SLICES:%=sMR3006g_OT1_s%.png)
 .PHONY: test clean
 
 
-test : reg/
+test : reg
 test : reg/avg.png
 
 clean:
 	-rm -rv reg/
 
-reg/ : parameterFile.txt
-	python ../../recRegStack.py "*.png" reg/ parameterFile.txt 0 | tee recRegStack.out
+reg : parameterFile.txt
+	PYTHONPATH=/opt/SimpleElastix/lib/python/:$$PYTHONPATH \
+		python ../../recRegStack.py -i "*.png" -o $@ -p parameterFile.txt | tee $@.out
 
 reg/avg.png : reg/
 	$(convertIM) -average $</*.tif $@
