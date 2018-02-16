@@ -82,7 +82,7 @@ for idx, FN in enumerate(FNs):
     selx.SetLogFileName(elastixLog)
     elastixLogPath= DNl + elastixLog
 
-    print("\r%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
+    print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
     sys.stdout.flush() # essential with \r !
     
     mI= sitk.ReadImage(FN1)
@@ -90,6 +90,7 @@ for idx, FN in enumerate(FNs):
         
     if idx == 0:
         sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
+        print "plain copy"
         continue
 
     fI= sitk.ReadImage(FN0)
