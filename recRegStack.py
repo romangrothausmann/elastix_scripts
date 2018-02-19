@@ -115,6 +115,8 @@ def main():
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
         fI= sitk.ReadImage(FN0)
+        fI= sitk.Extract(fI, [1000, 1000], [1000, 1000])
+        sitk.WriteImage(fI, "fI_%03d.tif" % idx);
 
         print FN0, FN1,
         
@@ -142,7 +144,15 @@ def main():
         print(finalMetricValue)
 
         # Write result image
-        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
+        # stfx needed because selx uses fixedImage size for output and 'Size' param only known as TransformParameter 
+        stfx = sitk.TransformixImageFilter() # stfx instanciated inside loop causes segfault on second execution
+        stfx.LogToFileOff()
+        stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
+        stfx.SetMovingImage(mI)
+        stfx.SetTransformParameterMap(selx.GetTransformParameterMap())
+        stfx.SetTransformParameter('Size', map(str, stfx.GetMovingImage().GetSize())) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+        stfx.Execute()
+        sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
         selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
 
 
