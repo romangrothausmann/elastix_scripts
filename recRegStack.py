@@ -92,7 +92,8 @@ def main():
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
         FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
-        FNt= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
+        FNt0= FNo + "/" + os.path.splitext(FN0)[0] + ".txt"
+        FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
         DNl= FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
         # Instantiate SimpleElastix
@@ -145,7 +146,7 @@ def main():
 
         tM= selx.GetTransformParameterMap(0)
         if idx > 1:
-            tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( FNo + "/" + FN0 )[0] + ".txt") ]
+            tM['InitialTransformParametersFileName'] = [ str(FNt0) ]
 
         stfx.AddTransformParameterMap(tM)
         stfx.SetMovingImage(mI)
@@ -154,7 +155,7 @@ def main():
 
         # Write result image
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
-        selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
+        selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1)
 
 
 if __name__ == "__main__":
