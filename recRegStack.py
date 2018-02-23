@@ -145,17 +145,17 @@ def main():
         print(finalMetricValue)
 
         tM= selx.GetTransformParameterMap(0)
-        # if idx > 1:
-        #     tM['InitialTransformParametersFileName'] = [ str(FNt0) ]
+        if idx > 1:
+            tM['InitialTransformParametersFileName'] = [ str(FNt0) ]
+        selx.WriteParameterFile(tM, FNt1)
 
-        stfx.AddTransformParameterMap(tM)
+        stfx.SetTransformParameterMap(tM) # set (not add) because InitialTransformParametersFileName of former TransformParametersFile should trigger recursion
         stfx.SetMovingImage(mI)
         with stdout_redirected(): # siclence stfx.Execute()
             stfx.Execute() # stfx instanciated inside loop causes segfault on second execution
 
         # Write result image
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
-        selx.WriteParameterFile(tM, FNt1)
 
 
 if __name__ == "__main__":
