@@ -135,6 +135,8 @@ def main():
             fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
             selx.SetFixedMask(fM)
             # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+        else:
+            selx.SetFixedMask(fI != 0)
 
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
