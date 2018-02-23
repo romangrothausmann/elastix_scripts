@@ -7,7 +7,7 @@
 (FixedInternalImagePixelType "float")
 (HowToCombineTransforms "Compose")
 (Index 0.000000 0.000000)
-(InitialTransformParametersFileName "reg/2016_12_02_0101_s03_02.txt")
+(InitialTransformParametersFileName "NoInitialTransform")
 (MovingImageDimension 2.000000)
 (MovingInternalImagePixelType "float")
 (NumberOfParameters 3.000000)

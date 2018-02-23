@@ -145,8 +145,8 @@ def main():
         print(finalMetricValue)
 
         tM= selx.GetTransformParameterMap(0)
-        if idx > 1:
-            tM['InitialTransformParametersFileName'] = [ str(FNt0) ]
+        # if idx > 1:
+        #     tM['InitialTransformParametersFileName'] = [ str(FNt0) ]
 
         stfx.AddTransformParameterMap(tM)
         stfx.SetMovingImage(mI)
