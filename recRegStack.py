@@ -126,6 +126,7 @@ def main():
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
+            fM.CopyInformation(fI) # essential for selx
             xmin= args.mask[0]
             xmax= args.mask[1]
             ymin= args.mask[2]
@@ -133,7 +134,7 @@ def main():
             mR= fM[xmin:xmax, ymin:ymax] == 0
             fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
             selx.SetFixedMask(fM)
-            sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+            # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
 
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
