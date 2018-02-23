@@ -145,7 +145,7 @@ def main():
 
         tM= selx.GetTransformParameterMap(0)
         if idx > 1:
-            tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( FNo + "/" + FNs[(idx - 1) % len(FNs)] )[0] + ".txt") ]
+            tM['InitialTransformParametersFileName'] = [ str(os.path.splitext( FNo + "/" + FN0 )[0] + ".txt") ]
 
         stfx.AddTransformParameterMap(tM)
         stfx.SetMovingImage(mI)
