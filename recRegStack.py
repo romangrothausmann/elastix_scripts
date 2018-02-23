@@ -55,6 +55,7 @@ def main():
     parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
     parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
+    parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
 
 
     args = parser.parse_args()
@@ -119,10 +120,21 @@ def main():
         print FN0, FN1,
         
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-        selx.SetFixedMask(fI != 0)
         selx.SetMovingImage(mI)
         pM.erase('InitialTransformParametersFileName')
         selx.SetParameterMap(pM)
+
+        if args.mask:
+            fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
+            xmin= args.mask[0]
+            xmax= args.mask[1]
+            ymin= args.mask[2]
+            ymax= args.mask[3]
+            mR= fM[xmin:xmax, ymin:ymax] == 0
+            fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
+            selx.SetFixedMask(fM)
+            sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
             print selx.GetInitialTransformParameterFileName(),
