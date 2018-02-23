@@ -85,8 +85,8 @@ def main():
         FN1= FN
         FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
         FNit= os.path.splitext(FN1)[0] + ".txt"
-        FNt= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
-        DNl= FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
+        FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
+        DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
         # Instantiate SimpleElastix
         selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
@@ -156,7 +156,7 @@ def main():
 
         # Write result image
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
-        selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt)
+        # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
 
 if __name__ == "__main__":
