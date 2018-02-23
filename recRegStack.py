@@ -155,7 +155,7 @@ def main():
 
         # Write result image
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
-        selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1)
+        selx.WriteParameterFile(tM, FNt1)
 
 
 if __name__ == "__main__":
