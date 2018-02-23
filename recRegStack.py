@@ -2,6 +2,9 @@
 ### determin transform to register successive images,
 ### apply former transform through InitialTransformParametersFileName,
 ### then apply transform from registration
+#### basically this python code replaces a shell script that would only use plain elastix/transformix (not selx)
+##### it does not use TransformParameterMap accumulation of selx (see combT_01 for that)
+##### used to be master branch but is too buggy and difficult to maintain as master
 
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
