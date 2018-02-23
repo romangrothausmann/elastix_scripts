@@ -133,6 +133,7 @@ def main():
             ymax= args.mask[3]
             mR= fM[xmin:xmax, ymin:ymax] == 0
             fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
+            fM= fM & (fI != 0) # also disregard empty regions in fI
             selx.SetFixedMask(fM)
             # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
         else:
