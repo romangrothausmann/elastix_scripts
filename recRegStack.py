@@ -85,6 +85,7 @@ def main():
         FN1= FN
         FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
         FNit= os.path.splitext(FN1)[0] + ".txt"
+        FNpF= os.path.splitext(FN1)[0] + ".pf"
         FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
         DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
@@ -121,6 +122,10 @@ def main():
         
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mI)
+        
+        if os.path.isfile(FNpF):
+            pM.update(selx.ReadParameterFile(FNpF))
+
         pM.erase('InitialTransformParametersFileName')
         selx.SetParameterMap(pM)
 
