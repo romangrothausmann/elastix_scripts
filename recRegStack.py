@@ -85,7 +85,7 @@ def main():
         FN1= FN
         FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
         FNit= os.path.splitext(FN1)[0] + ".txt"
-        FNpF= os.path.splitext(FN1)[0] + ".pf"
+        FNpF= os.path.splitext(FN1)[0] + ".pf.txt" # selx.ReadParameterFile expects *.txt
         FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
         DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
@@ -94,7 +94,7 @@ def main():
         selx.LogToFileOff()
         selx.LogToConsoleOn()
 
-        pM= selx.ReadParameterFile(args.PF) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/Elastix/include/sitkSimpleElastix.h#L119
+        pM= selx.ReadParameterFile(args.PF) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
@@ -124,7 +124,10 @@ def main():
         selx.SetMovingImage(mI)
         
         if os.path.isfile(FNpF):
-            pM.update(selx.ReadParameterFile(FNpF))
+            # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
+            for key, value in selx.ReadParameterFile(FNpF).items():
+                pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
+            print FNpF,
 
         pM.erase('InitialTransformParametersFileName')
         selx.SetParameterMap(pM)
