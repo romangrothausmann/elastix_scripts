@@ -68,7 +68,7 @@ def main():
     try:
         start= FNs.index(args.start) # can be used as FNs= FNs[start:] but not ideal for referencing idx-1
     except ValueError, e:
-        start= None
+        start= 0
         if args.start:
             print "Start not found!"
     
@@ -77,11 +77,8 @@ def main():
         os.makedirs(FNo)
 
     ## copy first file as is or transform with identity
-    for idx, FN in enumerate(FNs):
-
-        ## skip upto start:
-        if(idx < start):
-            continue
+    for idx, FN in enumerate(FNs[start:]): # skip upto start:
+        idx= idx + start # recalculate original index: https://stackoverflow.com/questions/31694064/how-to-enumerate-over-selected-elements-from-an-iterable-keeping-original-indice#31695026
 
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
