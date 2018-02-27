@@ -57,6 +57,7 @@ def main():
     parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
     parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
+    parser.add_argument("-b", "--back", dest="back", required=False, action='store_true', help="Continue backwards from start-file (-s).")
     parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
 
 
@@ -76,17 +77,31 @@ def main():
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
-    ## copy first file as is or transform with identity
-    for idx, FN in enumerate(FNs[start:]): # skip upto start:
-        idx= idx + start # recalculate original index: https://stackoverflow.com/questions/31694064/how-to-enumerate-over-selected-elements-from-an-iterable-keeping-original-indice#31695026
-
-        FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
+    ## register series forwards
+    FNp= FNs[start:] # skip upto start
+    for idx, FN in enumerate(FNp):
+        FN0= FNp[(idx - 1) % len(FNp)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
 
-        register(FN0, FN1, FNs, FNo, idx, args)
+        idx= idx + start # recalculate original index: https://stackoverflow.com/questions/31694064/how-to-enumerate-over-selected-elements-from-an-iterable-keeping-original-indice#31695026
+
+        register(FN0, FN1, FNp, FNo, start, idx, args)
+
+    if not args.back or not args.start:
+        return
+    
+    ## register series backwards
+    FNp= FNs[start::-1] # backwards from start
+    for idx, FN in enumerate(FNp):
+        FN0= FNp[(idx - 1) % len(FNp)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
+        FN1= FN
+
+        idx= idx + start # recalculate original index: https://stackoverflow.com/questions/31694064/how-to-enumerate-over-selected-elements-from-an-iterable-keeping-original-indice#31695026
+
+        register(FN0, FN1, FNp, FNo, start, idx, args)
 
 
-def register(FN0, FN1, FNs, FNo, idx, args):
+def register(FN0, FN1, FNs, FNo, start, idx, args):
     FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
     FNit= os.path.splitext(FN1)[0] + ".txt"
     FNpF= os.path.splitext(FN1)[0] + ".pf.txt" # selx.ReadParameterFile expects *.txt
@@ -114,7 +129,7 @@ def register(FN0, FN1, FNs, FNo, idx, args):
     mI= sitk.ReadImage(FN1)
     PixelType= mI.GetPixelIDValue()
 
-    if idx == 0:
+    if idx == start:
         sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
         print FN1, FNof, "plain copy"
         return
