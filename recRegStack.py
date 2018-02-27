@@ -104,7 +104,7 @@ def main():
         selx.SetLogFileName(elastixLog)
         elastixLogPath= DNl + elastixLog
 
-        print("\r%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
+        print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
         sys.stdout.flush() # essential with \r !
 
         mI= sitk.ReadImage(FN1)
@@ -112,6 +112,7 @@ def main():
         
         if idx == 0:
             sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
+            print "plain copy"
             continue
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
