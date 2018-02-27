@@ -18,6 +18,7 @@ FNs:= $(SLICES:%=sMR3006g_OT1_s%.png)
 test : reg
 test : reg/avg.png
 test : reg2
+test : reg3
 
 clean:
 	-rm -rv reg/
@@ -33,6 +34,11 @@ reg2 : parameterFile.txt | reg/2016_12_02_0101_s02_06.tif
 	python ../../recRegStack.py -i "*.png" -o $@ -p $< \
 		-s 2016_12_02_0101_s03_01.png \
 		-S 2016_12_02_0101_s03_02.png 2016_12_02_0101_s03_03.png 2016_12_02_0101_s03_04.png | tee $@.out
+
+reg3 : parameterFile.txt
+	python ../../recRegStack.py -i "*.png" -o $@ -p $< \
+		-s 2016_12_02_0101_s03_01.png \
+		-b | tee $@.out
 
 reg/avg.png : reg/
 	$(convertIM) -average $</*.tif $@
