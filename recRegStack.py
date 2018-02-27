@@ -1,3 +1,5 @@
+## register a sieries of images concecutively
+
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
 import SimpleITK as sitk
@@ -112,7 +114,7 @@ def main():
         
         if idx == 0:
             sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
-            print "plain copy"
+            print FN1, FNof, "plain copy"
             continue
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
