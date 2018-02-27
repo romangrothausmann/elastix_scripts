@@ -159,7 +159,7 @@ def main():
 
         finalMetricValue= 0
         with open(elastixLogPath) as f:
-            m= re.search('Final metric value  = (?P<value>[+-.0-9]+)', f.read()) # dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+           m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', f.read()) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
         f.close()
         if m:
             try:
