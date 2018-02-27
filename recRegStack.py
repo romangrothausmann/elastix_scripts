@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 ## register a sieries of images concecutively
+### register current image to the formerly transformed image
+### use InitialTransformParametersFileName (if existant) as InitialTransform
+### use case specific ParametersFile (if existant) to changes defaults
 
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
