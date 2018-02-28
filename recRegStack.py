@@ -57,6 +57,7 @@ def main():
     parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
     parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
+    parser.add_argument("-b", "--back", dest="back", required=False, action='store_true', help="Continue backwards from start-file (-s).")
     parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
 
 
@@ -76,103 +77,118 @@ def main():
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
-    ## copy first file as is or transform with identity
-    for idx, FN in enumerate(FNs[start:]): # skip upto start:
-        idx= idx + start # recalculate original index: https://stackoverflow.com/questions/31694064/how-to-enumerate-over-selected-elements-from-an-iterable-keeping-original-indice#31695026
+    ## use previous registered image, if it exists, i.e. continue
+    FNp= FNo + "/" + os.path.splitext(FNs[start-1])[0] + ".tif"
+    if not os.path.isfile(FNp):
+        FNp= None
+            
+    ## register series forwards
+    register(FNs[start:], FNo, args, FNp) # skip upto start
 
+    if not args.back or not args.start:
+        return
+    
+    ## use previous registered image, if it exists, i.e. continue from forward run
+    FNp= FNo + "/" + os.path.splitext(FNs[start])[0] + ".tif"
+
+    ## register series backwards
+    register(FNs[start-1::-1], FNo, args, FNp) # backwards from start
+
+
+def register(FNs, FNo, args, FNp= None):
+    for idx, FN in enumerate(FNs):
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
 
-        register(FN0, FN1, FNs, FNo, idx, args)
+        FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
+        FNit= os.path.splitext(FN1)[0] + ".txt"
+        FNpF= os.path.splitext(FN1)[0] + ".pf.txt" # selx.ReadParameterFile expects *.txt
+        FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
+        DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
+        # Instantiate SimpleElastix
+        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
+        selx.LogToFileOff()
+        selx.LogToConsoleOn()
 
-def register(FN0, FN1, FNs, FNo, idx, args):
-    FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
-    FNit= os.path.splitext(FN1)[0] + ".txt"
-    FNpF= os.path.splitext(FN1)[0] + ".pf.txt" # selx.ReadParameterFile expects *.txt
-    FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
-    DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
+        pM= selx.ReadParameterFile(args.PF) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
 
-    # Instantiate SimpleElastix
-    selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-    selx.LogToFileOff()
-    selx.LogToConsoleOn()
+        if not os.path.exists(DNl):
+            os.makedirs(DNl)
+        selx.SetOutputDirectory(DNl)
 
-    pM= selx.ReadParameterFile(args.PF) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+        elastixLog= os.path.splitext(FN1)[0] + ".log"
+        selx.SetLogFileName(elastixLog)
+        elastixLogPath= DNl + elastixLog
 
-    if not os.path.exists(DNl):
-        os.makedirs(DNl)
-    selx.SetOutputDirectory(DNl)
+        print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
+        sys.stdout.flush() # essential with \r !
 
-    elastixLog= os.path.splitext(FN1)[0] + ".log"
-    selx.SetLogFileName(elastixLog)
-    elastixLogPath= DNl + elastixLog
+        mI= sitk.ReadImage(FN1)
+        PixelType= mI.GetPixelIDValue()
 
-    print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
-    sys.stdout.flush() # essential with \r !
+        if idx == 0:
+            if FNp:
+                FN0=FNp
+            else:
+                sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
+                print FN1, FNof, "plain copy"
+                continue
+        else:
+            FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
-    mI= sitk.ReadImage(FN1)
-    PixelType= mI.GetPixelIDValue()
+        fI= sitk.ReadImage(FN0)
 
-    if idx == 0:
-        sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
-        print FN1, FNof, "plain copy"
-        return
-    else:
-        FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
+        print FN0, FN1,
 
-    fI= sitk.ReadImage(FN0)
+        selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
+        selx.SetMovingImage(mI)
 
-    print FN0, FN1,
+        if os.path.isfile(FNpF):
+            # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
+            for key, value in selx.ReadParameterFile(FNpF).items():
+                pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
+            print FNpF,
 
-    selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-    selx.SetMovingImage(mI)
+        pM.erase('InitialTransformParametersFileName')
+        selx.SetParameterMap(pM)
 
-    if os.path.isfile(FNpF):
-        # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
-        for key, value in selx.ReadParameterFile(FNpF).items():
-            pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
-        print FNpF,
+        if args.mask:
+            fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
+            fM.CopyInformation(fI) # essential for selx
+            xmin= args.mask[0]
+            xmax= args.mask[1]
+            ymin= args.mask[2]
+            ymax= args.mask[3]
+            mR= fM[xmin:xmax, ymin:ymax] == 0
+            fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
+            fM= fM & (fI != 0) # also disregard empty regions in fI
+            selx.SetFixedMask(fM)
+            # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+        else:
+            selx.SetFixedMask(fI != 0)
 
-    pM.erase('InitialTransformParametersFileName')
-    selx.SetParameterMap(pM)
+        if os.path.isfile(FNit):
+            selx.SetInitialTransformParameterFileName(FNit)
+            print selx.GetInitialTransformParameterFileName(),
+        with open(elastixLogPath, 'w') as f, stdout_redirected(f):
+            selx.Execute()
+        f.close()
 
-    if args.mask:
-        fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
-        fM.CopyInformation(fI) # essential for selx
-        xmin= args.mask[0]
-        xmax= args.mask[1]
-        ymin= args.mask[2]
-        ymax= args.mask[3]
-        mR= fM[xmin:xmax, ymin:ymax] == 0
-        fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
-        fM= fM & (fI != 0) # also disregard empty regions in fI
-        selx.SetFixedMask(fM)
-        # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
-    else:
-        selx.SetFixedMask(fI != 0)
+        finalMetricValue= 0
+        with open(elastixLogPath) as f:
+           m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', f.read()) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+        f.close()
+        if m:
+            try:
+                finalMetricValue= float(m.group('value'))
+            except:
+                raise Exception('Final metric value not found in "elastix.log".')
+        print(finalMetricValue)
 
-    if os.path.isfile(FNit):
-        selx.SetInitialTransformParameterFileName(FNit)
-        print selx.GetInitialTransformParameterFileName(),
-    with open(elastixLogPath, 'w') as f, stdout_redirected(f):
-        selx.Execute()
-    f.close()
-
-    finalMetricValue= 0
-    with open(elastixLogPath) as f:
-       m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', f.read()) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
-    f.close()
-    if m:
-        try:
-            finalMetricValue= float(m.group('value'))
-        except:
-            raise Exception('Final metric value not found in "elastix.log".')
-    print(finalMetricValue)
-
-    # Write result image
-    sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
-    # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
+        # Write result image
+        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
+        # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
 
 if __name__ == "__main__":
