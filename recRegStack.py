@@ -78,21 +78,19 @@ def main():
         os.makedirs(FNo)
 
     ## register series forwards
-    register(FNs[start:], FNo, start, args) # skip upto start
+    register(FNs[start:], FNo, args) # skip upto start
 
     if not args.back or not args.start:
         return
     
     ## register series backwards
-    register(FNs[start::-1], FNo, start, args) # backwards from start
+    register(FNs[start::-1], FNo, args) # backwards from start
 
 
-def register(FNs, FNo, start, args):
+def register(FNs, FNo, args):
     for idx, FN in enumerate(FNs):
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
-
-        idx= idx + start # recalculate original index: https://stackoverflow.com/questions/31694064/how-to-enumerate-over-selected-elements-from-an-iterable-keeping-original-indice#31695026
 
         FNof= FNo + "/" + os.path.splitext(FN1)[0] + ".tif" # TIF for float # http://stackoverflow.com/questions/678236/how-to-get-the-filename-without-the-extension-from-a-path-in-python
         FNit= os.path.splitext(FN1)[0] + ".txt"
@@ -121,7 +119,7 @@ def register(FNs, FNo, start, args):
         mI= sitk.ReadImage(FN1)
         PixelType= mI.GetPixelIDValue()
 
-        if idx == start:
+        if idx == 0:
             sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
             print FN1, FNof, "plain copy"
             continue
