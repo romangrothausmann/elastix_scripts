@@ -77,17 +77,25 @@ def main():
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
+    ## use previous registered image, if it exists, i.e. continue
+    FNp= FNo + "/" + os.path.splitext(FNs[start-1])[0] + ".tif"
+    if not os.path.isfile(FNp):
+        FNp= None
+            
     ## register series forwards
-    register(FNs[start:], FNo, args) # skip upto start
+    register(FNs[start:], FNo, args, FNp) # skip upto start
 
     if not args.back or not args.start:
         return
     
+    ## use previous registered image, if it exists, i.e. continue from forward run
+    FNp= FNo + "/" + os.path.splitext(FNs[start])[0] + ".tif"
+
     ## register series backwards
-    register(FNs[start::-1], FNo, args) # backwards from start
+    register(FNs[start-1::-1], FNo, args, FNp) # backwards from start
 
 
-def register(FNs, FNo, args):
+def register(FNs, FNo, args, FNp= None):
     for idx, FN in enumerate(FNs):
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
@@ -120,9 +128,12 @@ def register(FNs, FNo, args):
         PixelType= mI.GetPixelIDValue()
 
         if idx == 0:
-            sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
-            print FN1, FNof, "plain copy"
-            continue
+            if FNp:
+                FN0=FNp
+            else:
+                sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
+                print FN1, FNof, "plain copy"
+                continue
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
