@@ -92,7 +92,7 @@ def main():
     FNp= FNo + "/" + os.path.splitext(FNs[start])[0] + ".tif"
 
     ## register series backwards
-    register(FNs[start-1::-1], FNo, args, FNp) # backwards from start
+    register(FNs[start-1::-1], FNo, args, FNp) # backwards from start: https://stackoverflow.com/questions/509211/understanding-pythons-slice-notation#509377
 
 
 def register(FNs, FNo, args, FNp= None):
