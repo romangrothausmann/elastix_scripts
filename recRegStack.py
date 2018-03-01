@@ -130,7 +130,7 @@ def register(FNs, FNo, args, FNp= None):
         PixelType= mI.GetPixelIDValue()
 
         if idx == 0:
-            if FNp:
+            if FNp and os.path.exists(FNp): # exists() fails on None
                 FN0=FNp
             else:
                 sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
