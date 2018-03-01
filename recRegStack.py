@@ -57,6 +57,7 @@ def main():
     parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
     parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
+    parser.add_argument("-f", "--forward", dest="forw", required=False, action='store_true', help="Continue forwards from start-file (-s).")
     parser.add_argument("-b", "--back", dest="back", required=False, action='store_true', help="Continue backwards from start-file (-s).")
     parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
 
@@ -77,22 +78,23 @@ def main():
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
         os.makedirs(FNo)
 
-    ## use previous registered image, if it exists, i.e. continue
-    FNp= FNo + "/" + os.path.splitext(FNs[start-1])[0] + ".tif"
-    if not os.path.isfile(FNp):
-        FNp= None
-            
-    ## register series forwards
-    register(FNs[start:], FNo, args, FNp) # skip upto start
+    if args.forw or not args.start:
 
-    if not args.back or not args.start:
-        return
+        ## use previous registered image, if it exists, i.e. continue
+        FNp= FNo + "/" + os.path.splitext(FNs[start-1])[0] + ".tif"
+        if not os.path.isfile(FNp):
+            FNp= None
+
+        ## register series forwards
+        register(FNs[start:], FNo, args, FNp) # skip upto start
+
+    if args.back:
     
-    ## use previous registered image, if it exists, i.e. continue from forward run
-    FNp= FNo + "/" + os.path.splitext(FNs[start])[0] + ".tif"
+        ## use previous registered image, if it exists, i.e. continue from forward run
+        FNp= FNo + "/" + os.path.splitext(FNs[start])[0] + ".tif"
 
-    ## register series backwards
-    register(FNs[start-1::-1], FNo, args, FNp) # backwards from start: https://stackoverflow.com/questions/509211/understanding-pythons-slice-notation#509377
+        ## register series backwards
+        register(FNs[start-1::-1], FNo, args, FNp) # backwards from start: https://stackoverflow.com/questions/509211/understanding-pythons-slice-notation#509377
 
 
 def register(FNs, FNo, args, FNp= None):
