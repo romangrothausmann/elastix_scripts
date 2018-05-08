@@ -67,6 +67,7 @@ def main():
     parser.add_argument("-cb", "--checkerboard", dest="cb", nargs=2, type=int, help="create checkerboard image (x-tiles, y-tiles).")
     parser.add_argument("-co", "--compose", dest="co", action='store_true', help="compose images into magenta, green.")
     parser.add_argument("-irpi", "--invertRigidityPenaltyImage", dest="irpi", action='store_true', help="invert TransformRigidityPenalty image.")
+    parser.add_argument("-n", "--numberOfThreads", dest="NoT", type=int, help="number of threads used by elastix.")
 
 
     args = parser.parse_args()
@@ -119,6 +120,8 @@ def register(FNs, FNo, args, FNp= None):
         selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
         selx.LogToFileOff()
         selx.LogToConsoleOn()
+        if args.NoT:
+            selx.SetNumberOfThreads(args.NoT)
 
         ## combine/append parameter maps for e.g. different transforms:
         ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
