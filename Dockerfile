@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     build-essential
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python python-dev
+
 # RUN git config --global http.sslVerify false # better inst. ca-certificates
 RUN git clone http://github.com/SuperElastix/SimpleElastix
 
@@ -14,9 +17,7 @@ RUN git clone http://github.com/SuperElastix/SimpleElastix
 RUN mkdir -p selx_build && \
     cd selx_build && \
     cmake \
-    	  -DPYTHON_EXECUTABLE=/usr/bin/python3 \
-	  -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.4m.so.1 \
-	  -DPYTHON_INCLUDE_DIR=/usr/include/python3.4m/ \
+    	  -DWRAP_PYTHON=On \
     	  ../SimpleElastix/SuperBuild/ && \
     make -j"$(nproc)" && \
-    make -j"$(nproc)" install
+    python SimpleITK-build/Wrapping/Python/Packaging/setup.py  install --home /opt/SimpleElastix/
