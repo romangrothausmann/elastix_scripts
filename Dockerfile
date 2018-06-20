@@ -3,8 +3,10 @@ FROM ubuntu:16.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
+    ca-certificates `# essential for git over https` \
     cmake
 
+# RUN git config --global http.sslVerify false # better inst. ca-certificates
 RUN git clone http://github.com/SuperElastix/SimpleElastix
 
 ## http://simpleelastix.readthedocs.io/GettingStarted.html#building-manually-on-linux
