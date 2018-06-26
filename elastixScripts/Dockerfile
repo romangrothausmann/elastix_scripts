@@ -1,7 +1,10 @@
 ## Use selx as base
-FROM selx:python2.7
+FROM selx:python2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ca-certificates `# essential for git over https` \
+    make \
     imagemagick
 
 RUN git clone http://github.com/romangrothausmann/elastix_scripts.git

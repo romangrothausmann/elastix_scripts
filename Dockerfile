@@ -1,5 +1,5 @@
 ## Use ubuntu:16.04 as base
-FROM ubuntu:16.04
+FROM ubuntu:16.04 as builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -21,3 +21,11 @@ RUN mkdir -p selx_build && \
     	  ../SimpleElastix/SuperBuild/ && \
     make -j"$(nproc)" && \
     python SimpleITK-build/Wrapping/Python/Packaging/setup.py  install --home /opt/SimpleElastix/
+
+
+FROM ubuntu:16.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python
+
+COPY --from=builder /opt/SimpleElastix/ /opt/SimpleElastix/
