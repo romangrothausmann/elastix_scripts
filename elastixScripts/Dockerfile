@@ -1,5 +1,5 @@
 ## Use selx as base
-FROM selx:python2
+FROM romangrothausmann/selx:python2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
