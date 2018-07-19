@@ -54,7 +54,7 @@ def main():
 
     parser.add_argument("-i", "--inputPattern", dest="input", metavar='GlobPattern', required=True, help="Glob-pattern for input files.")
     parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
-    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
+    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', nargs='+', required=True, help="Elastix Parameter File(s)")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
     parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
     parser.add_argument("-f", "--forward", dest="forw", required=False, action='store_true', help="Continue forwards from start-file (-s).")
@@ -113,7 +113,12 @@ def register(FNs, FNo, args, FNp= None):
         selx.LogToFileOff()
         selx.LogToConsoleOn()
 
-        pM= selx.ReadParameterFile(args.PF) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+        ## combine/append parameter maps for e.g. different transforms:
+        ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
+        ## http://simpleelastix.readthedocs.io/ParameterMaps.html
+        pM= sitk.VectorOfParameterMap()
+        for pf in args.PF:
+            pM.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
