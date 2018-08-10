@@ -247,7 +247,13 @@ def register(FNs, FNo, args, FNp= None):
         print
 
         # Write result image
-        sitk.WriteImage(sitk.Cast(sitk.Transformix(mI, selx.GetTransformParameterMap(), False), PixelType), FNof)
+        stfx = sitk.TransformixImageFilter()
+        stfx.LogToFileOff()
+        stfx.LogToConsoleOff()
+        stfx.SetMovingImage(mI)
+        stfx.SetTransformParameterMap(selx.GetTransformParameterMap())
+        stfx.Execute()
+        sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
