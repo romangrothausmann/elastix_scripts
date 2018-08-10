@@ -151,8 +151,8 @@ def register(FNs, FNo, args, FNp= None):
         mI= sitk.ReadImage(FN1)
         PixelType= mI.GetPixelIDValue()
 
-        mI= sitk.Cast(otsu.Execute(mI), sitk.sitkUInt8)
-        mI= smdm.Execute(mI) # sitk.SignedMaurerDistanceMap(mI, squaredDistance=False, useImageSpacing=False)
+        mIod= otsu.Execute(mI)
+        mIod= smdm.Execute(mIod) # sitk.SignedMaurerDistanceMap(mI, squaredDistance=False, useImageSpacing=False)
 
         if idx == 0:
             if FNp and os.path.exists(FNp): # exists() fails on None
@@ -165,13 +165,13 @@ def register(FNs, FNo, args, FNp= None):
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
         fI= sitk.ReadImage(FN0)
-        fI= sitk.Cast(otsu.Execute(fI), sitk.sitkUInt8)
-        fI= smdm.Execute(fI)
+        fIod= otsu.Execute(fI)
+        fIod= smdm.Execute(fIod)
 
         print FN0, FN1,
 
-        selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-        selx.SetMovingImage(mI)
+        selx.SetFixedImage(fIod) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
+        selx.SetMovingImage(mIod)
 
         for i, pM in enumerate(pMs):
             pMs[i].erase('InitialTransformParametersFileName')
