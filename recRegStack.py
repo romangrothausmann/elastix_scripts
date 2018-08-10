@@ -249,10 +249,11 @@ def register(FNs, FNo, args, FNp= None):
         # Write result image
         stfx = sitk.TransformixImageFilter()
         stfx.LogToFileOff()
-        stfx.LogToConsoleOff()
+        stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
         stfx.SetMovingImage(mI)
         stfx.SetTransformParameterMap(selx.GetTransformParameterMap())
-        stfx.Execute()
+        with open(elastixLogPath, 'w') as f, stdout_redirected(f):
+            stfx.Execute()
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
