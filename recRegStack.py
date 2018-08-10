@@ -141,8 +141,18 @@ def register(FNs, FNo, args, FNp= None):
         print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
         sys.stdout.flush() # essential with \r !
 
+        otsu= sitk.OtsuThresholdImageFilter()
+        otsu.SetInsideValue(0)
+        otsu.SetOutsideValue(1)
+        smdm= sitk.SignedMaurerDistanceMapImageFilter()
+        smdm.SquaredDistanceOff()
+        smdm.UseImageSpacingOff()
+
         mI= sitk.ReadImage(FN1)
         PixelType= mI.GetPixelIDValue()
+
+        mI= sitk.Cast(otsu.Execute(mI), sitk.sitkUInt8)
+        mI= smdm.Execute(mI) # sitk.SignedMaurerDistanceMap(mI, squaredDistance=False, useImageSpacing=False)
 
         if idx == 0:
             if FNp and os.path.exists(FNp): # exists() fails on None
@@ -155,6 +165,8 @@ def register(FNs, FNo, args, FNp= None):
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
         fI= sitk.ReadImage(FN0)
+        fI= sitk.Cast(otsu.Execute(fI), sitk.sitkUInt8)
+        fI= smdm.Execute(fI)
 
         print FN0, FN1,
 
