@@ -157,7 +157,7 @@ def register(FNs, FNo, args, FNp= None):
                 pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
-        pM.erase('InitialTransformParametersFileName')
+        pM[0].erase('InitialTransformParametersFileName')
         selx.SetParameterMap(pM)
 
         if args.mask:
