@@ -116,9 +116,9 @@ def register(FNs, FNo, args, FNp= None):
         ## combine/append parameter maps for e.g. different transforms:
         ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
         ## http://simpleelastix.readthedocs.io/ParameterMaps.html
-        pM= sitk.VectorOfParameterMap()
+        pMs= sitk.VectorOfParameterMap()
         for pf in args.PF:
-            pM.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+            pMs.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
@@ -154,11 +154,11 @@ def register(FNs, FNo, args, FNp= None):
         if os.path.isfile(FNpF):
             # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
             for key, value in selx.ReadParameterFile(FNpF).items():
-                pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
+                pMs[0][key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
-        pM[0].erase('InitialTransformParametersFileName')
-        selx.SetParameterMap(pM)
+        pMs[0].erase('InitialTransformParametersFileName')
+        selx.SetParameterMap(pMs)
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
