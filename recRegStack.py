@@ -157,15 +157,16 @@ def register(FNs, FNo, args, FNp= None):
                 pMs[0][key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
-        for pM in pMs:            
-            pM.erase('InitialTransformParametersFileName')
+        for i, pM in enumerate(pMs):
+            pMs[i].erase('InitialTransformParametersFileName')
             if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
                 P= sitk.GetArrayFromImage(mI)
                 P= 1.0 * (P - P.min()) / (P.max() - P.min()) # normalize to [0;1] # https://stackoverflow.com/questions/1282945/python-integer-division-yields-float#44868240
                 P= 1 - P # dark in orig. <=> deform less
                 FNmri= 'MovingRigidityImageName.mha'
                 sitk.WriteImage(sitk.Cast(sitk.GetImageFromArray(P), sitk.sitkFloat32), FNmri)
-                pM['MovingRigidityImageName']= FNmri
+                pM['MovingRigidityImageName']= [FNmri]
+                pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
 
         selx.SetParameterMap(pMs)
 
