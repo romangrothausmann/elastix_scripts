@@ -154,7 +154,7 @@ def register(FNs, FNo, args, FNp= None):
 
         if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
             P= sitk.GetArrayFromImage(mI)
-            P= (P - P.min()) / (P.max() - P.min()) # normalize to [0;1]
+            P= 1.0 * (P - P.min()) / (P.max() - P.min()) # normalize to [0;1] # https://stackoverflow.com/questions/1282945/python-integer-division-yields-float#44868240
             P= 1 - P # dark in orig. <=> deform less
             FNmri= 'MovingRigidityImageName.mha'
             sitk.WriteImage(sitk.GetImageFromArray(P), FNmri)
