@@ -152,6 +152,14 @@ def register(FNs, FNo, args, FNp= None):
                 pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
+        if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
+            P= sitk.GetArrayFromImage(mI)
+            P= (P - P.min()) / (P.max() - P.min()) # normalize to [0;1]
+            P= 1 - P # dark in orig. <=> deform less
+            FNmri= 'MovingRigidityImageName.mha'
+            sitk.WriteImage(sitk.GetImageFromArray(P), FNmri)
+            pM['MovingRigidityImageName']= FNmri
+            
         pM.erase('InitialTransformParametersFileName')
         selx.SetParameterMap(pM)
 
