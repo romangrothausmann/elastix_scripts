@@ -60,6 +60,8 @@ def main():
     parser.add_argument("-f", "--forward", dest="forw", required=False, action='store_true', help="Continue forwards from start-file (-s).")
     parser.add_argument("-b", "--back", dest="back", required=False, action='store_true', help="Continue backwards from start-file (-s).")
     parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
+    parser.add_argument("-cb", "--checkerboard", dest="cb", nargs=2, type=int, help="create checkerboard image (x-tiles, y-tiles).", default=[4, 4])
+    parser.add_argument("-co", "--compose", dest="co", action='store_true', help="compose images into magenta, green.")
 
 
     args = parser.parse_args()
@@ -207,6 +209,15 @@ def register(FNs, FNo, args, FNp= None):
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
+        if args.cb or args.co:
+            sfI= sitk.Cast(sitk.RescaleIntensity(fI), sitk.sitkUInt8)
+            smI= sitk.Cast(sitk.RescaleIntensity(selx.GetResultImage()), sitk.sitkUInt8)
+        
+        if args.cb:
+            sitk.WriteImage(sitk.CheckerBoard(sfI, smI, args.cb), FNof.replace(".tif", "_cb.png"))
+            
+        if args.co:
+            sitk.WriteImage(sitk.Compose(sfI, smI, sfI//2.+smI//2.), FNof.replace(".tif", "_co.png"))
 
 if __name__ == "__main__":
     main()
