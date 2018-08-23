@@ -219,5 +219,13 @@ def register(FNs, FNo, args, FNp= None):
         if args.co:
             sitk.WriteImage(sitk.Compose(sfI, smI, sfI//2.+smI//2.), FNof.replace(".tif", "_co.png"))
 
+        stfx = sitk.TransformixImageFilter()
+        stfx.ComputeDeformationFieldOn()
+        stfx.SetMovingImage(mI)
+        stfx.LogToFileOn()
+        stfx.SetOutputDirectory("tra/")
+        stfx.SetTransformParameterMap(selx.GetTransformParameterMap())
+        stfx.Execute()
+
 if __name__ == "__main__":
     main()
