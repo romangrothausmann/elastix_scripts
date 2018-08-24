@@ -194,16 +194,25 @@ def register(FNs, FNo, args, FNp= None):
             selx.Execute()
         f.close()
 
-        finalMetricValue= 0
+        fMV= None
+        fMVs= None
+        nM= len(pM['Metric']) # number of metrices, avoids to get nM from tabel headers
         with open(elastixLogPath) as f:
-           m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', f.read()) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+            for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
+                if not fMV: # get "Final metric value" (fMV)
+                    m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', line) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
+                    if m:
+                        try:
+                            fMV= m.group('value')
+                        except:
+                            raise Exception('Final metric value not found in "elastix.log".')
+                else: # get line of fMV in table
+                    cols= line.split()
+                    if len(cols) > 1 and cols[1] == fMV: # overall metric always in 2nd column "2:Metric"
+                        fMVs= cols[0:nM+2]
+                        break
         f.close()
-        if m:
-            try:
-                finalMetricValue= float(m.group('value'))
-            except:
-                raise Exception('Final metric value not found in "elastix.log".')
-        print(finalMetricValue)
+        print fMVs[0], fMVs[1], fMVs[2:]
 
         # Write result image
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
