@@ -193,11 +193,11 @@ def register(FNs, FNo, args, FNp= None):
                             raise Exception('Final metric value not found in "elastix.log".')
                 else: # get line of fMV in table
                     cols= line.split()
-                    if len(cols) > 1 and cols[1] == fMV: # overall metric always in 2nd column "2:Metric"
+                    if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
                         fMVs= cols[0:nM+2]
                         break
         f.close()
-        print fMVs[0], fMVs[1], fMVs[2:]
+        print fMVs[0], fMV, fMVs[1:]
 
         # Write result image
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
