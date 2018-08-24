@@ -194,10 +194,10 @@ def register(FNs, FNo, args, FNp= None):
                 else: # get line of fMV in table
                     cols= line.split()
                     if len(cols) > 1 and cols[1] == fMV: # overall metric always in 2nd column "2:Metric"
-                        fMVs= cols[2:nM+2]
+                        fMVs= cols[0:nM+2]
                         break
         f.close()
-        print fMV, fMVs
+        print fMVs[0], fMVs[1], fMVs[2:]
 
         # Write result image
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
