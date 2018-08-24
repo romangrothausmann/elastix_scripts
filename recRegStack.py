@@ -195,8 +195,9 @@ def register(FNs, FNo, args, FNp= None):
         f.close()
 
         fMV= None
-        fMVs= None
-        nM= len(pM['Metric']) # number of metrices, avoids to get nM from tabel headers
+        fMVs= []
+        nM= None
+        mN= len(pMs)-1 # reverse parsing, so start with last pM
         with open(elastixLogPath) as f:
             for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
                 if not fMV: # get "Final metric value" (fMV)
@@ -206,13 +207,20 @@ def register(FNs, FNo, args, FNp= None):
                             fMV= m.group('value')
                         except:
                             raise Exception('Final metric value not found in "elastix.log".')
+                        nM= len(pMs[mN]['Metric']) # number of metrices, avoids to get nM from tabel headers
                 else: # get line of fMV in table
                     cols= line.split()
                     if len(cols) > 1 and cols[1] == fMV: # overall metric always in 2nd column "2:Metric"
-                        fMVs= cols[0:nM+2]
-                        break
+                        if nM > 1:
+                            fMVs.append(cols[0:nM+2]) # overall metric and each individual metric
+                        else:
+                            fMVs.append(cols[0:nM+1]) # only overall metric
+                        fMV= None # continue for next transform
+                        mN-=1 # previous pM
         f.close()
-        print fMVs[0], fMVs[1], fMVs[2:]
+        for i in range(len(pMs)-1,-1,-1):
+            print fMVs[i][0], fMVs[i][1], fMVs[i][2:],
+        print
 
         # Write result image
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
