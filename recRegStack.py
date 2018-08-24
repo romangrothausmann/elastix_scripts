@@ -194,32 +194,34 @@ def register(FNs, FNo, args, FNp= None):
             selx.Execute()
         f.close()
 
-        fMV= None
+        fMV= []
         fMVs= []
+        cfMV= None
         nM= None
         mN= len(pMs)-1 # reverse parsing, so start with last pM
         with open(elastixLogPath) as f:
             for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
-                if not fMV: # get "Final metric value" (fMV)
+                if not cfMV: # get "Final metric value" (fMV)
                     m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', line) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
                     if m:
                         try:
-                            fMV= m.group('value')
+                            cfMV= m.group('value')
                         except:
                             raise Exception('Final metric value not found in "elastix.log".')
+                        fMV.append(cfMV)
                         nM= len(pMs[mN]['Metric']) # number of metrices, avoids to get nM from tabel headers
                 else: # get line of fMV in table
                     cols= line.split()
-                    if len(cols) > 1 and cols[1] == fMV: # overall metric always in 2nd column "2:Metric"
+                    if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
                         if nM > 1:
                             fMVs.append(cols[0:nM+2]) # overall metric and each individual metric
                         else:
                             fMVs.append(cols[0:nM+1]) # only overall metric
-                        fMV= None # continue for next transform
+                        cfMV= None # continue for next transform
                         mN-=1 # previous pM
         f.close()
         for i in range(len(pMs)-1,-1,-1):
-            print fMVs[i][0], fMVs[i][1], fMVs[i][2:],
+            print fMVs[i][0], fMV[i], fMVs[i][1:],
         print
 
         # Write result image
