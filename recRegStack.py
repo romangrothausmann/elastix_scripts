@@ -229,8 +229,8 @@ def register(FNs, FNo, args, FNp= None):
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
-            sfI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(sitk.Cast(fI, sitk.sitkFloat32)) * -1, 256/2, 2), sitk.sitkUInt8)
-            smI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(selx.GetResultImage()) * -1, 256/2, 2), sitk.sitkUInt8)
+            sfI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(sitk.Cast(fI, sitk.sitkFloat32)) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
+            smI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(selx.GetResultImage()) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
         
         if args.cb:
             sitk.WriteImage(sitk.CheckerBoard(sfI, smI, args.cb), FNof.replace(".tif", "_cb.png"))
