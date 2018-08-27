@@ -54,7 +54,7 @@ def main():
 
     parser.add_argument("-i", "--inputPattern", dest="input", metavar='GlobPattern', required=True, help="Glob-pattern for input files.")
     parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
-    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
+    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', nargs='+', required=True, help="Elastix Parameter File(s)")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
     parser.add_argument("-S", "--skip", dest="skip", metavar='N', nargs='+', help="Skip specified file-names.")
     parser.add_argument("-f", "--forward", dest="forw", required=False, action='store_true', help="Continue forwards from start-file (-s).")
@@ -115,7 +115,12 @@ def register(FNs, FNo, args, FNp= None):
         selx.LogToFileOff()
         selx.LogToConsoleOn()
 
-        pM= selx.ReadParameterFile(args.PF) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+        ## combine/append parameter maps for e.g. different transforms:
+        ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
+        ## http://simpleelastix.readthedocs.io/ParameterMaps.html
+        pMs= sitk.VectorOfParameterMap()
+        for pf in args.PF:
+            pMs.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
@@ -151,11 +156,21 @@ def register(FNs, FNo, args, FNp= None):
         if os.path.isfile(FNpF):
             # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
             for key, value in selx.ReadParameterFile(FNpF).items():
-                pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
+                pMs[0][key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
-        pM.erase('InitialTransformParametersFileName')
-        selx.SetParameterMap(pM)
+        for i, pM in enumerate(pMs):
+            pMs[i].erase('InitialTransformParametersFileName')
+            if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
+                P= sitk.GetArrayFromImage(mI)
+                P= 1.0 * (P - P.min()) / (P.max() - P.min()) # normalize to [0;1] # https://stackoverflow.com/questions/1282945/python-integer-division-yields-float#44868240
+                P= 1 - P # dark in orig. <=> deform less
+                FNmri= 'MovingRigidityImageName.mha'
+                sitk.WriteImage(sitk.Cast(sitk.GetImageFromArray(P), sitk.sitkFloat32), FNmri)
+                pM['MovingRigidityImageName']= [FNmri]
+                pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
+
+        selx.SetParameterMap(pMs)
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
@@ -179,25 +194,35 @@ def register(FNs, FNo, args, FNp= None):
             selx.Execute()
         f.close()
 
-        fMV= None
-        fMVs= None
-        nM= len(pM['Metric']) # number of metrices, avoids to get nM from tabel headers
+        fMV= []
+        fMVs= []
+        cfMV= None
+        nM= None
+        mN= len(pMs)-1 # reverse parsing, so start with last pM
         with open(elastixLogPath) as f:
             for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
-                if not fMV: # get "Final metric value" (fMV)
+                if not cfMV: # get "Final metric value" (fMV)
                     m= re.search('Final metric value  = (?P<value>[-\+\.0-9]+)', line) # normally: - has to be first and +. need escaping, dyn. length # http://lists.bigr.nl/pipermail/elastix/2016-December/002435.html
                     if m:
                         try:
-                            fMV= m.group('value')
+                            cfMV= m.group('value')
                         except:
                             raise Exception('Final metric value not found in "elastix.log".')
+                        fMV.append(cfMV)
+                        nM= len(pMs[mN]['Metric']) # number of metrices, avoids to get nM from tabel headers
                 else: # get line of fMV in table
                     cols= line.split()
                     if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
-                        fMVs= cols[0:nM+2]
-                        break
+                        if nM > 1:
+                            fMVs.append(cols[0:nM+2]) # overall metric and each individual metric
+                        else:
+                            fMVs.append(cols[0:nM+1]) # only overall metric
+                        cfMV= None # continue for next transform
+                        mN-=1 # previous pM
         f.close()
-        print fMVs[0], fMV, fMVs[1:]
+        for i in range(len(pMs)-1,-1,-1):
+            print fMVs[i][0], fMV[i], fMVs[i][1:],
+        print
 
         # Write result image
         sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)

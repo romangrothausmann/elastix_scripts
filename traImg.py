@@ -13,7 +13,7 @@ def main():
 
     parser.add_argument("-i", "--input", dest="input", metavar='GlobPattern', required=True, help="Glob-pattern for input files.")
     parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
-    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', required=True, help="Elastix Parameter File")
+    parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', nargs='+', required=True, help="Elastix Parameter File")
 
 
     args = parser.parse_args()
@@ -28,7 +28,10 @@ def main():
 
     mI= sitk.ReadImage(args.input)
     PixelType= mI.GetPixelIDValue()
-    
+
+    ## applying multiple transforms can be done without selx/stfx only using sitk.Resample:
+    ## https://github.com/SuperElastix/SimpleElastix/issues/208#issuecomment-400438164
+    ## https://github.com/SuperElastix/SimpleElastix/issues/134
     stfx.SetMovingImage(mI)
     stfx.SetTransformParameterMap(selx.ReadParameterFile(args.PF))
     stfx.SetTransformParameter('Size', map(str, stfx.GetMovingImage().GetSize())) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
