@@ -163,12 +163,11 @@ def register(FNs, FNo, args, FNp= None):
         for i, pM in enumerate(pMs):
             pMs[i].erase('InitialTransformParametersFileName')
             if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
-                P= sitk.GetArrayFromImage(mI)
-                P= 1.0 * (P - P.min()) / (P.max() - P.min()) # normalize to [0;1] # https://stackoverflow.com/questions/1282945/python-integer-division-yields-float#44868240
-                if args.irpi:
-                    P= 1 - P # dark in orig. <=> deform less
                 FNmri= 'MovingRigidityImageName.mha'
-                sitk.WriteImage(sitk.Cast(sitk.GetImageFromArray(P), sitk.sitkFloat32), FNmri)
+                if args.irpi:
+                    sitk.WriteImage(1 - sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
+                else:
+                    sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
                 pM['MovingRigidityImageName']= [FNmri]
                 pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
 
