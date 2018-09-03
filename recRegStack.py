@@ -62,6 +62,7 @@ def main():
     parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
     parser.add_argument("-cb", "--checkerboard", dest="cb", nargs=2, type=int, help="create checkerboard image (x-tiles, y-tiles).")
     parser.add_argument("-co", "--compose", dest="co", action='store_true', help="compose images into magenta, green.")
+    parser.add_argument("-irpi", "--invertRigidityPenaltyImage", dest="irpi", action='store_true', help="invert TransformRigidityPenalty image.")
 
 
     args = parser.parse_args()
@@ -164,7 +165,8 @@ def register(FNs, FNo, args, FNp= None):
             if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
                 P= sitk.GetArrayFromImage(mI)
                 P= 1.0 * (P - P.min()) / (P.max() - P.min()) # normalize to [0;1] # https://stackoverflow.com/questions/1282945/python-integer-division-yields-float#44868240
-                P= 1 - P # dark in orig. <=> deform less
+                if args.irpi:
+                    P= 1 - P # dark in orig. <=> deform less
                 FNmri= 'MovingRigidityImageName.mha'
                 sitk.WriteImage(sitk.Cast(sitk.GetImageFromArray(P), sitk.sitkFloat32), FNmri)
                 pM['MovingRigidityImageName']= [FNmri]
