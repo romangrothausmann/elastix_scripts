@@ -265,6 +265,7 @@ def register(FNs, FNo, args, FNp= None):
         print
 
         # Write result image
+<<<<<<< HEAD
         stfx = sitk.TransformixImageFilter()
         stfx.LogToFileOff()
         stfx.LogToConsoleOn() # no effect if selx.LogToConsoleOn() ?
@@ -274,6 +275,15 @@ def register(FNs, FNo, args, FNp= None):
             stfx.Execute()
         rIod= selx.GetResultImage() # rIod should NOT include cast to be comparable to smdm
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
+=======
+        rI= mI
+        for pfn in sorted( glob.glob(DNl + "/TransformParameters.*.txt") ):
+            tPM= selx.ReadParameterFile(pfn)
+            tPM.erase('InitialTransformParametersFileName')
+            selx.PrintParameterMap(tPM)
+            rI= sitk.Transformix(rI, tPM, False)
+        sitk.WriteImage(sitk.Cast(rI, PixelType), FNof)
+>>>>>>> 027fbd2... PMs retruned by selx.GetTransformParameterMap() can be incomplete:
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
