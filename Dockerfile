@@ -1,5 +1,13 @@
-## Use ubuntu:16.04 as base
-FROM ubuntu:16.04 as builder
+################################################################################
+# base system
+################################################################################
+FROM ubuntu:16.04 as system
+
+
+################################################################################
+# builder
+################################################################################
+FROM system as builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -23,7 +31,10 @@ RUN mkdir -p selx_build && \
     python SimpleITK-build/Wrapping/Python/Packaging/setup.py  install --home /opt/SimpleElastix/
 
 
-FROM ubuntu:16.04
+################################################################################
+# install
+################################################################################
+FROM system as install
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python
