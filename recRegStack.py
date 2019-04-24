@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 ## register a sieries of images concecutively
 
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py

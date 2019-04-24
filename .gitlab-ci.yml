@@ -1,0 +1,115 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+stages:
+  - build
+  - test
+  - release
+
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
+
+build:
+  stage: build
+  tags:
+    - multicore
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    ## 1st stage build
+    - docker pull $IMAGE_TAG:system-latest || true
+    - docker build --pull
+                   --cache-from $IMAGE_TAG:system-latest
+                   --tag $IMAGE_TAG:system-latest
+                   --target system
+                   .
+    - docker push $IMAGE_TAG:system-latest
+    ## 2nd stage build
+    - docker pull $IMAGE_TAG:builder-latest || true
+    - docker build --pull
+                   --cache-from $IMAGE_TAG:system-latest
+                   --cache-from $IMAGE_TAG:builder-latest
+                   --tag $IMAGE_TAG:builder-latest
+                   --target builder 
+                   .
+    - docker push $IMAGE_TAG:builder-latest
+    ## 3rd stage build
+    - docker pull $IMAGE_TAG:test || true
+    - docker build --pull
+                   --cache-from $IMAGE_TAG:system-latest
+                   --cache-from $IMAGE_TAG:builder-latest
+                   --cache-from $IMAGE_TAG:test
+                   --tag $IMAGE_TAG:test
+                   .
+    - docker push $IMAGE_TAG:test
+  retry: 2
+
+.test00: &test00
+  stage: test
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker pull $IMAGE_TAG:test
+    - set +o pipefail # essential if return-value of pipe is used to determine job status
+    - "docker run --rm
+                 $IMAGE_TAG:test
+                 $CI_JOB_NAME
+                 2>&1 | tee /dev/stderr | grep 'usage:' "
+  retry: 2
+
+.test: &test
+  stage: test
+  script:
+    - docker pull $IMAGE_TAG:test
+    - docker run --rm
+                 -v $(pwd):/images
+                 $IMAGE_TAG:test
+                 $CMD
+  retry: 2
+
+recRegStack.py:
+  <<: *test00
+
+traImg.py:
+  <<: *test00
+
+release:
+  stage: release
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - apk add --update --no-cache curl jq
+    - export ms='application/vnd.docker.distribution.manifest.v2+json'
+    - export APIURL=$( echo "https://$CI_REGISTRY/v2/$CI_PROJECT_PATH/$CI_COMMIT_REF_SLUG" | tr '[:upper:]' '[:lower:]' )
+    - 'export TOKEN=$(
+       curl https://gitlab.com/jwt/auth
+       -s -f
+       -u $GITLAB_USER_LOGIN:$REGISTRY_TOKEN
+       --get
+       -d client_id=docker
+       -d offline_token=true
+       -d service=container_registry
+       -d "scope=repository:$CI_PROJECT_PATH/$CI_COMMIT_REF_SLUG:*"
+       | sed -r "s/(\{\"token\":\"|\"\})//g"
+       )'
+    - ' curl -fs         -H "Accept: $ms"       -H "Authorization:Bearer $TOKEN"       $APIURL/manifests/test
+      | curl -fsS -X PUT -H "Content-type: $ms" -H "Authorization:Bearer $TOKEN" -d @- $APIURL/manifests/latest '
+    - ' curl -fs         -H "Accept: $ms"       -H "Authorization:Bearer $TOKEN"       $APIURL/manifests/test
+      | curl -fsS -X PUT -H "Content-type: $ms" -H "Authorization:Bearer $TOKEN" -d @- $APIURL/manifests/$CI_COMMIT_SHORT_SHA '
+    ## remove old images (keep N) with GIT-SHA tag
+    - export URLENC=$( echo $CI_PROJECT_PATH | sed 's|/|%2F|g' ) # https://docs.gitlab.com/ce/api/README.html#namespaced-path-encoding
+    - export registryID=$( curl -fs "https://gitlab.com/api/v4/projects/$URLENC/registry/repositories" | jq ".[] | select(.location==\"$IMAGE_TAG\") | .id" ) # https://docs.gitlab.com/ce/api/container_registry.html#list-registry-repositories
+    - curl -fs "https://gitlab.com/api/v4/projects/$URLENC/registry/repositories/$registryID/tags" | jq '.[] | .name'
+    - 'curl -fs
+           --request DELETE
+           --data "name_regex=[0-9a-f]{8}"
+           --data "keep_n=5"
+           --header "PRIVATE-TOKEN: $REGISTRY_TOKEN"
+           "https://gitlab.com/api/v4/projects/$URLENC/registry/repositories/$registryID/tags" ' # https://docs.gitlab.com/ce/api/container_registry.html#delete-repository-tags-in-bulk
+    - sleep 30
+    - curl -fs "https://gitlab.com/api/v4/projects/$URLENC/registry/repositories/$registryID/tags" | jq '.[] | .name'
