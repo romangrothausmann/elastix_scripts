@@ -26,6 +26,7 @@ RUN git clone -b v1.1.0 --depth 1 http://github.com/SuperElastix/SimpleElastix
 RUN mkdir -p selx_build && \
     cd selx_build && \
     cmake \
+    	  -DCMAKE_CXX_STANDARD=11 \
     	  -DCMAKE_INSTALL_PREFIX=/opt/SimpleElastix/ \
 	  -DCMAKE_BUILD_TYPE=Release \
 	  -DBUILD_TESTING=OFF \
