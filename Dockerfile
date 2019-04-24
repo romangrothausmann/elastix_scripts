@@ -32,7 +32,8 @@ RUN mkdir -p selx_build && \
     	  -DWRAP_PYTHON=On \
     	  ../SimpleElastix/SuperBuild/ && \
     make -j"$(nproc)" && \
-    python SimpleITK-build/Wrapping/Python/Packaging/setup.py  install --home /opt/SimpleElastix/
+    cd SimpleITK-build/Wrapping/Python `# essential for py install ` && \
+    python Packaging/setup.py  install --home /opt/SimpleElastix/
 
 
 ################################################################################
