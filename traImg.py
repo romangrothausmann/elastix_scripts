@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
 import SimpleITK as sitk
