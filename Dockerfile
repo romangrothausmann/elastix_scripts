@@ -30,6 +30,7 @@ RUN mkdir -p selx_build && \
     	  -DCMAKE_INSTALL_PREFIX=/opt/SimpleElastix/ \
 	  -DCMAKE_BUILD_TYPE=Release \
 	  -DBUILD_TESTING=OFF \
+	  -DBUILD_EXAMPLES=OFF \
     	  -DWRAP_PYTHON=On \
     	  ../SimpleElastix/SuperBuild/ && \
     make -j"$(nproc)" && \
