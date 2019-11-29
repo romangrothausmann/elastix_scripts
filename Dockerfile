@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python-dev
 
 # RUN git config --global http.sslVerify false # better inst. ca-certificates
-RUN git clone -b v1.1.0 --depth 1 http://github.com/SuperElastix/SimpleElastix
+RUN git clone http://github.com/SuperElastix/SimpleElastix && cd SimpleElastix && git checkout 2a79d151894021c66dceeb2c8a64ff61506e7155
 
 ## http://simpleelastix.readthedocs.io/GettingStarted.html#building-manually-on-linux
 RUN mkdir -p selx_build && \
