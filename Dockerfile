@@ -1,7 +1,7 @@
 ################################################################################
 # base system
 ################################################################################
-FROM ubuntu:16.04 as system
+FROM ubuntu:18.04 as system
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python
