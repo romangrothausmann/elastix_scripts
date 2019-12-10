@@ -32,7 +32,7 @@
 
 
 (MaximumNumberOfIterations 1000 500 300 200)
-(MaximumStepLength 100 5 3 2)
+(MaximumStepLength 10 5 3 2)
 (MinimumStepLength 0.1 0.005 0.001 0.0001)
 (MinimumGradientMagnitude 0.00001 0.00001 0.0001)
 (RelaxationFactor 0.99)
