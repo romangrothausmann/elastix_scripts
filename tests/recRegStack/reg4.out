@@ -1,9 +1,10 @@
   4.2% (1/24) 2016_12_02_0101_s03_01.png reg4/2016_12_02_0101_s03_01.tif plain copy
   8.3% (2/24) reg4/2016_12_02_0101_s03_01.tif 2016_12_02_0101_s02_06.png 199 11.979240 ['11.979240']
- 12.5% (3/24) reg4/2016_12_02_0101_s02_06.tif 2016_12_02_0101_s02_05.png 199 14.875788 ['14.875788']
- 16.7% (4/24) reg4/2016_12_02_0101_s02_05.tif 2016_12_02_0101_s02_04.png 199 7.595126 ['7.595126']
- 20.8% (5/24) reg4/2016_12_02_0101_s02_04.tif 2016_12_02_0101_s02_03.png 199 19.898572 ['19.898572']
- 25.0% (6/24) reg4/2016_12_02_0101_s02_03.tif 2016_12_02_0101_s02_02.png
+ 12.5% (3/24) reg4/2016_12_02_0101_s02_06.tif 2016_12_02_0101_s02_05.png 199 14.857885 ['14.857885']
+ 16.7% (4/24) reg4/2016_12_02_0101_s02_05.tif 2016_12_02_0101_s02_04.png 199 7.541589 ['7.541589']
+ 20.8% (5/24) reg4/2016_12_02_0101_s02_04.tif 2016_12_02_0101_s02_03.png 199 19.728505 ['19.728505']
+ 25.0% (6/24) reg4/2016_12_02_0101_s02_03.tif 2016_12_02_0101_s02_02.png 199 155.647479 ['155.647479']
+ 29.2% (7/24) reg4/2016_12_02_0101_s02_02.tif 2016_12_02_0101_s02_01.png
 Traceback (most recent call last):
   File "/elastix_scripts/recRegStack.py", line 271, in <module>
     main()
@@ -15,10 +16,10 @@ Traceback (most recent call last):
     return _SimpleITK.ElastixImageFilter_Execute(self)
 RuntimeError: Exception thrown in SimpleITK ElastixImageFilter_Execute: /SimpleElastix/Code/Elastix/src/sitkElastixImageFilterImpl.cxx:259:
 sitk::ERROR: 
-itk::ExceptionObject (0x7f6d4c002890)
+itk::ExceptionObject (0x55f6205a1bd0)
 Location: "unknown" 
 File: /selx_build/Elastix/Core/Main/elxElastixFilter.hxx
 Line: 253
-Description: itk::ERROR: Self(0x7f6d2400bf30): Internal elastix error: See elastix log (use LogToConsoleOn() or LogToFileOn()).
+Description: itk::ERROR: Self(0x7f3d9c00aed0): Internal elastix error: See elastix log (use LogToConsoleOn() or LogToFileOn()).
 
 
