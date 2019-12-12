@@ -29,16 +29,16 @@ clean:
 
 ## reg all test images starting with the first, make sure to run make clean first to avoid continue behavior on last slice
 reg : parameterFile.txt
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
-	recRegStack.py -i "*.png" -o $@ -p $< | tee $@.out
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	/elastix_scripts/recRegStack.py -i "*.png" -o $@ -p $< | tee $@.out
 
 ## test start and skip option
 reg/2016_12_02_0101_s02_06.tif : reg
 reg2 : parameterFile.txt | reg/2016_12_02_0101_s02_06.tif
 	mkdir -p reg2/
 	ln -sf ../reg/2016_12_02_0101_s02_06.tif reg2/
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
-	recRegStack.py -i "*.png" -o $@ -p $< \
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	/elastix_scripts/recRegStack.py -i "*.png" -o $@ -p $< \
 		-s 2016_12_02_0101_s03_01.png \
 		-f \
 		-S 2016_12_02_0101_s03_02.png 2016_12_02_0101_s03_03.png 2016_12_02_0101_s03_04.png | tee $@.out
@@ -46,16 +46,16 @@ reg2 : parameterFile.txt | reg/2016_12_02_0101_s02_06.tif
 ## register forward from start slice and then continue backwards
 reg3 : parameterFile.txt
 	-rm -v $@/2016_12_02_0101_s02_06.tif # make sure file does not exist from former run, otherwise leads to "continue"
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
-	recRegStack.py -i "*.png" -o $@ -p $< \
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	/elastix_scripts/recRegStack.py -i "*.png" -o $@ -p $< \
 		-s 2016_12_02_0101_s03_01.png \
 		-f -b | tee $@.out
 
 ## register only backwards from start slice
 reg4 : parameterFile.txt 
 	-rm -v $@/2016_12_02_0101_s03_02.tif # make sure file does not exist from former run, otherwise leads to "continue"
-	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
-	recRegStack.py -i "*.png" -o $@ -p $< \
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
+	/elastix_scripts/recRegStack.py -i "*.png" -o $@ -p $< \
 		-s 2016_12_02_0101_s03_02.png `# starting such, that corresponding images are the same as in reg3` \
 		-b | tee $@.out
 
