@@ -22,10 +22,10 @@ Traceback (most recent call last):
     return _SimpleITK.ElastixImageFilter_Execute(self)
 RuntimeError: Exception thrown in SimpleITK ElastixImageFilter_Execute: /SimpleElastix/Code/Elastix/src/sitkElastixImageFilterImpl.cxx:259:
 sitk::ERROR: 
-itk::ExceptionObject (0x562d860adc50)
+itk::ExceptionObject (0x55725075f6d0)
 Location: "unknown" 
 File: /selx_build/Elastix/Core/Main/elxElastixFilter.hxx
 Line: 253
-Description: itk::ERROR: Self(0x7fea8800c9b0): Internal elastix error: See elastix log (use LogToConsoleOn() or LogToFileOn()).
+Description: itk::ERROR: Self(0x7f57bc001ed0): Internal elastix error: See elastix log (use LogToConsoleOn() or LogToFileOn()).
 
 
