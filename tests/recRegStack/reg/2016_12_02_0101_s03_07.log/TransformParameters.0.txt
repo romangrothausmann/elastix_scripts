@@ -2,6 +2,7 @@
 (NumberOfParameters 3)
 (TransformParameters -0.103248 24.767766 67.711300)
 (InitialTransformParametersFileName "NoInitialTransform")
+(UseBinaryFormatForTransformationParameters "false")
 (HowToCombineTransforms "Compose")
 
 // Image specific
