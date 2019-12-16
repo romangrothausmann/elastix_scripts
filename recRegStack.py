@@ -106,6 +106,7 @@ def main():
 
 
 def register(FNs, FNo, args, FNp= None):
+    rI= None
     for idx, FN in enumerate(FNs):
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
@@ -154,7 +155,10 @@ def register(FNs, FNo, args, FNp= None):
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
-        fI= sitk.ReadImage(FN0)
+        if rI:
+            fI= rI # reuse last rI (avoid re-read)
+        else:
+            fI= sitk.ReadImage(FN0)
 
         print FN0, FN1,
 
@@ -235,7 +239,8 @@ def register(FNs, FNo, args, FNp= None):
         print
 
         # Write result image
-        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof)
+        rI= sitk.Cast(selx.GetResultImage(), PixelType) # rI should include cast to be comparable to those read from disk
+        sitk.WriteImage(rI, FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
