@@ -106,6 +106,7 @@ def main():
 
 
 def register(FNs, FNo, args, FNp= None):
+    rIod= None
     for idx, FN in enumerate(FNs):
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
@@ -164,9 +165,12 @@ def register(FNs, FNo, args, FNp= None):
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
 
-        fI= sitk.ReadImage(FN0)
-        fIod= otsu.Execute(fI)
-        fIod= smdm.Execute(fIod)
+        if rIod:
+            fIod= rIod # reuse last rIod (avoid re-read)
+        else:
+            fI= sitk.ReadImage(FN0)
+            fIod= otsu.Execute(fI)
+            fIod= smdm.Execute(fIod)
 
         print FN0, FN1,
 
@@ -254,6 +258,7 @@ def register(FNs, FNo, args, FNp= None):
         stfx.SetTransformParameterMap(selx.GetTransformParameterMap())
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
             stfx.Execute()
+        rIod= selx.GetResultImage() # rIod should NOT include cast to be comparable to smdm
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
