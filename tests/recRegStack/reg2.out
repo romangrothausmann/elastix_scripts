@@ -1,23 +1,9 @@
- 11.1% (1/9) 2016_12_02_0101_s03_01.png reg2/2016_12_02_0101_s03_01.tif plain copy
- 22.2% (2/9) reg2/2016_12_02_0101_s03_01.tif 2016_12_02_0101_s03_05.png 199 13.312209 ['13.312209']
- 33.3% (3/9) reg2/2016_12_02_0101_s03_05.tif 2016_12_02_0101_s03_06.png 199 61.239402 ['61.239402']
- 44.4% (4/9) reg2/2016_12_02_0101_s03_06.tif 2016_12_02_0101_s03_07.png 199 7.850201 ['7.850201']
- 55.6% (5/9) reg2/2016_12_02_0101_s03_07.tif 2016_12_02_0101_s03_08.png
-Traceback (most recent call last):
-  File "/elastix_scripts/recRegStack.py", line 271, in <module>
-    main()
-  File "/elastix_scripts/recRegStack.py", line 97, in main
-    register(FNs[start:], FNo, args, FNp) # skip upto start
-  File "/elastix_scripts/recRegStack.py", line 216, in register
-    selx.Execute()
-  File "/opt/SimpleElastix/lib/python/SimpleITK/SimpleITK.py", line 10996, in Execute
-    return _SimpleITK.ElastixImageFilter_Execute(self)
-RuntimeError: Exception thrown in SimpleITK ElastixImageFilter_Execute: /SimpleElastix/Code/Elastix/src/sitkElastixImageFilterImpl.cxx:259:
-sitk::ERROR: 
-itk::ExceptionObject (0x55ce782e2660)
-Location: "unknown" 
-File: /selx_build/Elastix/Core/Main/elxElastixFilter.hxx
-Line: 253
-Description: itk::ERROR: Self(0x7f0428001130): Internal elastix error: See elastix log (use LogToConsoleOn() or LogToFileOn()).
-
-
+ 11.1% (1/9) reg2/2016_12_02_0101_s02_06.tif 2016_12_02_0101_s03_01.png 199 128.973130 ['128.973130']
+ 22.2% (2/9) reg2/2016_12_02_0101_s03_01.tif 2016_12_02_0101_s03_05.png 199 23.309558 ['23.309558']
+ 33.3% (3/9) reg2/2016_12_02_0101_s03_05.tif 2016_12_02_0101_s03_06.png 199 70.370987 ['70.370987']
+ 44.4% (4/9) reg2/2016_12_02_0101_s03_06.tif 2016_12_02_0101_s03_07.png 199 73.419253 ['73.419253']
+ 55.6% (5/9) reg2/2016_12_02_0101_s03_07.tif 2016_12_02_0101_s03_08.png 199 6.026643 ['6.026643']
+ 66.7% (6/9) reg2/2016_12_02_0101_s03_08.tif 2016_12_02_0101_s03_09.png 199 4.298498 ['4.298498']
+ 77.8% (7/9) reg2/2016_12_02_0101_s03_09.tif 2016_12_02_0101_s03_10.png 199 4.568632 ['4.568632']
+ 88.9% (8/9) reg2/2016_12_02_0101_s03_10.tif 2016_12_02_0101_s03_11.png 199 7.027616 ['7.027616']
+100.0% (9/9) reg2/2016_12_02_0101_s03_11.tif 2016_12_02_0101_s03_12.png 199 2.737475 ['2.737475']
