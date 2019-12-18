@@ -253,10 +253,10 @@ def register(FNs, FNo, args, FNp= None):
         # Write result image
         stfx = sitk.TransformixImageFilter()
         stfx.LogToFileOff()
-        stfx.LogToConsoleOff() # no effect if selx.LogToConsoleOn() ?
+        stfx.LogToConsoleOn() # no effect if selx.LogToConsoleOn() ?
         stfx.SetMovingImage(mI)
         stfx.SetTransformParameterMap(selx.GetTransformParameterMap())
-        with open(elastixLogPath, 'w') as f, stdout_redirected(f):
+        with open(os.path.splitext(elastixLogPath)[0] + "_stfx.log", 'w') as f, stdout_redirected(f):
             stfx.Execute()
         rIod= selx.GetResultImage() # rIod should NOT include cast to be comparable to smdm
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
