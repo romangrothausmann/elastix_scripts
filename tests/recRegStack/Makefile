@@ -36,7 +36,7 @@ reg : parameterFile.txt
 reg/2016_12_02_0101_s02_06.tif : reg
 reg2 : parameterFile.txt | reg/2016_12_02_0101_s02_06.tif
 	mkdir -p reg2/
-	ln -sf ../reg/2016_12_02_0101_s02_06.tif reg2/
+	test -e reg/2016_12_02_0101_s02_06.tif && ln -sf ../reg/2016_12_02_0101_s02_06.tif reg2/
 	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c \
 	/elastix_scripts/recRegStack.py -i "*.png" -o $@ -p $< \
 		-s 2016_12_02_0101_s03_01.png \
