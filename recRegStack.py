@@ -104,6 +104,27 @@ def main():
         ## register series backwards
         register(FNs[start-1::-1], FNo, args, FNp) # backwards from start: https://stackoverflow.com/questions/509211/understanding-pythons-slice-notation#509377
 
+def preProPMs(pMs, FNpF, irpi, mI):        
+    for i, pM in enumerate(pMs):
+        pMs[i].erase('InitialTransformParametersFileName')
+
+        if os.path.isfile(FNpF):
+            # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
+            for key, value in selx.ReadParameterFile(FNpF).items():
+                pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
+            pMs[i]= pM # apparently only a complete pM can be assigned to pMs, not idividual key-value-pairs like pMs[0][key]= value; pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
+            print FNpF,
+
+        if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
+            FNmri= 'MovingRigidityImageName.mha'
+            if irpi:
+                sitk.WriteImage(1 - sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
+            else:
+                sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
+            pM['MovingRigidityImageName']= [FNmri]
+            pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
+
+    return(pMs)
 
 def register(FNs, FNo, args, FNp= None):
     rI= None
@@ -164,27 +185,7 @@ def register(FNs, FNo, args, FNp= None):
 
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mI)
-
-        for i, pM in enumerate(pMs):
-            pMs[i].erase('InitialTransformParametersFileName')
-
-            if os.path.isfile(FNpF):
-                # pM.asdict().update(selx.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
-                for key, value in selx.ReadParameterFile(FNpF).items():
-                    pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
-                pMs[i]= pM # apparently only a complete pM can be assigned to pMs, not idividual key-value-pairs like pMs[0][key]= value; pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
-                print FNpF,
-
-            if 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
-                FNmri= 'MovingRigidityImageName.mha'
-                if args.irpi:
-                    sitk.WriteImage(1 - sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
-                else:
-                    sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
-                pM['MovingRigidityImageName']= [FNmri]
-                pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
-
-        selx.SetParameterMap(pMs)
+        selx.SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI))
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
