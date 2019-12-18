@@ -78,6 +78,17 @@ recRegStack.py:
 traImg.py:
   <<: *test00
 
+recRegStack:
+  stage: test
+  script:
+    - docker pull $IMAGE_TAG:test
+    - apk update && apk upgrade && apk add --no-cache make coreutils imagemagick git # coreutils needed for seq that knows -f
+    - make -C tests/recRegStack/ DI=$IMAGE_TAG:test  clean  test
+    ## test should result in the same file as stored by git
+    - git update-index -q --refresh
+    - git diff-index --exit-code HEAD --
+  retry: 2
+
 release:
   stage: release
   variables:
