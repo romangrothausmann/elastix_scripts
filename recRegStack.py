@@ -106,8 +106,11 @@ def main():
 
 def preProPMs(pMs, FNpF, irpi, mI):        
     for i, pM in enumerate(pMs):
+        ## remove initial transform parameter file name (not mIT) and re-set it later with SetInitialTransformParameterFileName to workaround bug:
+        ## https://github.com/SuperElastix/SimpleElastix/issues/121
         pMs[i].erase('InitialTransformParametersFileName')
 
+        ## override default parameter map with individual settings for the current image pair (*.pf.txt)
         if os.path.isfile(FNpF):
             # pM.asdict().update(sitk.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
             for key, value in sitk.ReadParameterFile(FNpF).items():
@@ -115,11 +118,12 @@ def preProPMs(pMs, FNpF, irpi, mI):
             pMs[i]= pM # apparently only a complete pM can be assigned to pMs, not idividual key-value-pairs like pMs[0][key]= value; pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
             print FNpF,
 
+        ## auto creation of a RigidityImage
         if 'Metric' in pM and 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
             FNmri= 'MovingRigidityImageName.mha'
-            if irpi:
+            if irpi: # inverted
                 sitk.WriteImage(1 - sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
-            else:
+            else: # not inverted
                 sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
             pM['MovingRigidityImageName']= [FNmri]
             pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
@@ -202,6 +206,7 @@ def register(FNs, FNo, args, FNp= None):
         else:
             selx.SetFixedMask(fI != 0)
 
+        ## set initial transform parameter file name for mIT (not effected by bug: https://github.com/SuperElastix/SimpleElastix/issues/121)
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
             print selx.GetInitialTransformParameterFileName(),
