@@ -274,8 +274,6 @@ def register(FNs, FNo, args, FNp= None):
             stfx.Execute()
         rIod= selx.GetResultImage() # rIod should NOT include cast to be comparable to smdm
         sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), FNof)
-        sitk.WriteImage(sitk.Cast(fIod,  PixelType), FNof + "_fIod.tif") # write fIod used for reg (otsu+dm)
-        sitk.WriteImage(sitk.Cast(selx.GetResultImage(), PixelType), FNof + "_mIod.tif") # write mIod used for reg (otsu+dm)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
