@@ -104,18 +104,25 @@ def main():
         ## register series backwards
         register(FNs[start-1::-1], FNo, args, FNp) # backwards from start: https://stackoverflow.com/questions/509211/understanding-pythons-slice-notation#509377
 
-def preProPMs(pMs, FNpF, irpi, mI):        
+def preProPMs(pMs, FNpF, irpi, mI):
+    NpMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
     for i, pM in enumerate(pMs):
-        ## remove initial transform parameter file name (not mIT) and re-set it later with SetInitialTransformParameterFileName to workaround bug:
+        ## if initial transform parameter file name (not mIT) is provided read it with sitk and insert it as separate pM to workaround bug:
         ## https://github.com/SuperElastix/SimpleElastix/issues/121
-        pMs[i].erase('InitialTransformParametersFileName')
+        ## works also for stfx which has no SetInitialTransformParameterFileName
+        ## https://groups.google.com/forum/#!category-topic/elastix-imageregistration/simpleelastix/TlAbmFE8TPw
+        if 'InitialTransformParametersFileName' in pM:
+            ITpMfn= pM['InitialTransformParametersFileName'][0] # ITpMfn is not necessarily FNit
+            if ITpMfn != 'NoInitialTransform':
+                pM['InitialTransformParametersFileName'] = ['NoInitialTransform']
+                if os.path.isfile(ITpMfn):
+                    NpMs.append(sitk.ReadParameterFile(ITpMfn))
 
         ## override default parameter map with individual settings for the current image pair (*.pf.txt)
         if os.path.isfile(FNpF):
             # pM.asdict().update(sitk.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
             for key, value in sitk.ReadParameterFile(FNpF).items():
                 pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
-            pMs[i]= pM # apparently only a complete pM can be assigned to pMs, not idividual key-value-pairs like pMs[0][key]= value; pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
             print FNpF,
 
         ## auto creation of a RigidityImage
@@ -126,9 +133,9 @@ def preProPMs(pMs, FNpF, irpi, mI):
             else: # not inverted
                 sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
             pM['MovingRigidityImageName']= [FNmri]
-            pMs[i]= pM # pM is a copy! https://stackoverflow.com/questions/13752461/python-how-to-change-values-in-a-list-of-lists#13752588
 
-    return(pMs)
+        NpMs.append(pM)
+    return(NpMs)
 
 def register(FNs, FNo, args, FNp= None):
     rI= None
@@ -210,6 +217,7 @@ def register(FNs, FNo, args, FNp= None):
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
             print selx.GetInitialTransformParameterFileName(),
+
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
             selx.Execute()
         f.close()
