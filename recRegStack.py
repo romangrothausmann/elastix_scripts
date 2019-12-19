@@ -218,6 +218,7 @@ def register(FNs, FNo, args, FNp= None):
             fIod= rIod # reuse last rIod (avoid re-read)
         else:
             fI= toLuminance(sitk.ReadImage(FN0))
+            otsu.SetMaskImage(fI != 0) # to avoid influence of regions filled with 0 (from former reg, in case of continuation)
             fIod= otsu.Execute(fI)
             fIod= smdm.Execute(fIod)
 
