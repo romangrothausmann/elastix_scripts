@@ -106,17 +106,22 @@ def main():
 
 def preProPMs(pMs, FNpF, irpi, mI):
     NpMs= itk.ParameterObject.New() # https://github.com/InsightSoftwareConsortium/ITKElastix/blob/master/examples/2_RegistrationParameters.ipynb
-    for i, pM in enumerate(pMs):
+    for i in range(pMs.GetNumberOfParameterMaps()):
+        pM= pMs.GetParameterMap(i)
         ## if initial transform parameter file name (not mIT) is provided read it with ITKElastix and insert it as separate pM to workaround bug:
         ## https://github.com/SuperElastix/SimpleElastix/issues/121
         ## works also for stfx which has no SetInitialTransformParameterFileName
         ## https://groups.google.com/forum/#!category-topic/elastix-imageregistration/simpleelastix/TlAbmFE8TPw
-        if 'InitialTransformParametersFileName' in pM:
-            ITpMfn= pM['InitialTransformParametersFileName'][0] # ITpMfn is not necessarily FNit
+        ITpMfn= pMs.GetParameter(i, 'InitialTransformParametersFileName') # ITpMfn is not necessarily FNit
+        print ITpMfn
+        if ITpMfn:
             if ITpMfn != 'NoInitialTransform':
-                pM['InitialTransformParametersFileName'] = ['NoInitialTransform']
                 if os.path.isfile(ITpMfn):
                     NpMs.AddParameterMap(itk.ParameterObject.New().ReadParameterFile(ITpMfn))
+                NpMs.AddParameterMap(pM)
+                NpMs.SetParameter(i+1, 'InitialTransformParametersFileName', 'NoInitialTransform')
+        else:
+            NpMs.AddParameterMap(pM)
 
         ## override default parameter map with individual settings for the current image pair (*.pf.txt)
         if os.path.isfile(FNpF):
@@ -124,16 +129,14 @@ def preProPMs(pMs, FNpF, irpi, mI):
                 pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
-        ## auto creation of a RigidityImage
-        if 'Metric' in pM and 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
-            FNmri= 'MovingRigidityImageName.mha'
-            if irpi: # inverted
-                itk.imwrite(1 - itk.rescale_intensity_image_filter(itk.cast_image_filter(mI, ttype=(type(mI), itk.Image[itk.F, 2])), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
-            else: # not inverted
-                itk.imwrite(itk.rescale_intensity_image_filter(itk.cast_image_filter(mI, ttype=(type(mI), itk.Image[itk.F, 2])), 0, 1), FNmri) # normalize to [0;1]
-            pM['MovingRigidityImageName']= [FNmri]
-
-        NpMs.AddParameterMap(pM)
+        # ## auto creation of a RigidityImage
+        # if 'Metric' in pM and 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
+        #     FNmri= 'MovingRigidityImageName.mha'
+        #     if irpi: # inverted
+        #         itk.imwrite(1 - itk.rescale_intensity_image_filter(itk.cast_image_filter(mI, ttype=(type(mI), itk.Image[itk.F, 2])), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
+        #     else: # not inverted
+        #         itk.imwrite(itk.rescale_intensity_image_filter(itk.cast_image_filter(mI, ttype=(type(mI), itk.Image[itk.F, 2])), 0, 1), FNmri) # normalize to [0;1]
+        #     pM['MovingRigidityImageName']= [FNmri]
     return(NpMs)
 
 def register(FNs, FNo, args, FNp= None):
