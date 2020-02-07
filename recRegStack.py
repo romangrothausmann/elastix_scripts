@@ -148,10 +148,9 @@ def register(FNs, FNo, args, FNp= None):
         FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
         DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
-        # Instantiate SimpleElastix
-        fType = itk.Image[itk.UC, 2]
-        mType = itk.Image[itk.F, 2]
-        selx = itk.ElastixRegistrationMethod[fType, mType].New() # https://itkpythonpackage.readthedocs.io/en/latest/Quick_start_guide.html#instantiate-an-itk-object
+        # Instantiate ITKElastix
+        rType = itk.Image[itk.F, 2]
+        selx = itk.ElastixRegistrationMethod[rType, rType].New() # https://itkpythonpackage.readthedocs.io/en/latest/Quick_start_guide.html#instantiate-an-itk-object
         selx.LogToFileOff()
         selx.LogToConsoleOn()
         if args.NoT:
@@ -175,13 +174,14 @@ def register(FNs, FNo, args, FNp= None):
         sys.stdout.flush() # essential with \r !
 
         mI= itk.imread(FN1)
-        PixelType= mI.GetPixelIDValue()
+        iType = type(mI)
+        mI= itk.cast_image_filter(mI, ttype=(iType, rType)) # ITKElastix needs mType == fType == rType
 
         if idx == 0:
             if FNp and os.path.exists(FNp): # exists() fails on None
                 FN0=FNp
             else:
-                itk.imwrite(itk.cast_image_filter(mI, ttype=(mType, fType)), FNof)
+                itk.imwrite(itk.cast_image_filter(mI, ttype=(rType, iType)), FNof)
                 print FN1, FNof, "plain copy"
                 continue
         else:
@@ -191,6 +191,7 @@ def register(FNs, FNo, args, FNp= None):
             fI= rI # reuse last rI (avoid re-read)
         else:
             fI= itk.imread(FN0)
+            fI= itk.cast_image_filter(fI, ttype=(type(fI), rType)) # ITKElastix needs mType == fType == rType
 
         print FN0, FN1,
 
@@ -253,13 +254,13 @@ def register(FNs, FNo, args, FNp= None):
         print
 
         # Write result image
-        rI= itk.cast_image_filter(selx.GetOutput(), ttype=(mType, fType)) # rI should include cast to be comparable to those read from disk
-        itk.imwrite(rI, FNof)
+        rI= selx.GetOutput()
+        itk.imwrite(itk.cast_image_filter(rI, ttype=(rType, iType)), FNof) # include cast to be comparable to those read from disk
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
-            sfI= itk.cast_image_filter(itk.shift_scale_image_filter(itk.normalize_image_filter(itk.cast_image_filter(fI, ttype=(fType, mType))) * -1, 256/2, 1.99), ttype=(mType, fType)) # VERY sensitive to scale factor! first shifts then scales!
-            smI= itk.cast_image_filter(itk.shift_scale_image_filter(itk.normalize_image_filter(selx.GetResultImage()) * -1, 256/2, 1.99), ttype=(mType, fType)) # VERY sensitive to scale factor! first shifts then scales!
+            sfI= itk.cast_image_filter(itk.shift_scale_image_filter(itk.normalize_image_filter(itk.cast_image_filter(fI, ttype=(iType, rType))) * -1, 256/2, 1.99), ttype=(rType, iType)) # VERY sensitive to scale factor! first shifts then scales!
+            smI= itk.cast_image_filter(itk.shift_scale_image_filter(itk.normalize_image_filter(selx.GetResultImage()) * -1, 256/2, 1.99), ttype=(rType, iType)) # VERY sensitive to scale factor! first shifts then scales!
         
         if args.cb:
             itk.imwrite(itk.checker_board_image_filter(sfI, smI, args.cb), FNof.replace(".tif", "_cb.png"))
