@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
-import SimpleITK as sitk
+import itk
 import sys
 import argparse
 
@@ -20,24 +20,28 @@ def main():
     args = parser.parse_args()
 
     # Instantiate SimpleElastix
-    selx = sitk.ElastixImageFilter()
-    stfx = sitk.TransformixImageFilter()
+    rType = itk.Image[itk.F, 2]
+    selx = itk.ElastixRegistrationMethod[rType, rType].New()
+    stfx = itk.TransformixFilter[rType].New()
     selx.LogToFileOff()
     selx.LogToConsoleOn()
     stfx.LogToFileOff()
     stfx.LogToConsoleOn()
 
-    mI= sitk.ReadImage(args.input)
-    PixelType= mI.GetPixelIDValue()
+    mI= itk.imread(args.input)
+    iType = type(mI)
+    mI= itk.cast_image_filter(mI, ttype=(iType, rType)) # ITKElastix needs mType == fType == rType
 
     ## applying multiple transforms can be done without selx/stfx only using sitk.Resample:
     ## https://github.com/SuperElastix/SimpleElastix/issues/208#issuecomment-400438164
     ## https://github.com/SuperElastix/SimpleElastix/issues/134
     stfx.SetMovingImage(mI)
-    stfx.SetTransformParameterMap(selx.ReadParameterFile(args.PF))
-    stfx.SetTransformParameter('Size', map(str, stfx.GetMovingImage().GetSize())) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
-    stfx.Execute()
-    sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), args.output)
+    tPM= itk.ParameterObject.New()
+    tPM.ReadParameterFile(args.PF)
+    tPM.SetParameter('Size', map(str, stfx.GetMovingImage().GetLargestPossibleRegion().GetSize())) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+    stfx.SetTransformParameterObject(tPM)
+    stfx.Update()
+    itk.imwrite(itk.cast_image_filter(stfx.GetResultImage(), ttype=(rType, iType)), args.output)
 
 
 if __name__ == "__main__":
