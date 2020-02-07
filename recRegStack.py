@@ -149,13 +149,6 @@ def register(FNs, FNo, args, FNp= None):
         FNt1= FNo + "/" + os.path.splitext(FN1)[0] + ".txt"
         DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
-        # Instantiate SimpleElastix
-        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
-        selx.LogToFileOff()
-        selx.LogToConsoleOn()
-        if args.NoT:
-            selx.SetNumberOfThreads(args.NoT)
-
         ## combine/append parameter maps for e.g. different transforms:
         ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
         ## http://simpleelastix.readthedocs.io/ParameterMaps.html
@@ -165,10 +158,8 @@ def register(FNs, FNo, args, FNp= None):
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
-        selx.SetOutputDirectory(DNl)
 
         elastixLog= os.path.splitext(FN1)[0] + ".log"
-        selx.SetLogFileName(elastixLog)
         elastixLogPath= DNl + elastixLog
 
         print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
@@ -194,9 +185,7 @@ def register(FNs, FNo, args, FNp= None):
 
         print FN0, FN1,
 
-        selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
-        selx.SetMovingImage(mI)
-        selx.SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI))
+        pO= preProPMs(pMs, FNpF, args.irpi, mI)
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
@@ -208,18 +197,24 @@ def register(FNs, FNo, args, FNp= None):
             mR= fM[xmin:xmax, ymin:ymax] == 0
             fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
             fM= fM & (fI != 0) # also disregard empty regions in fI
-            selx.SetFixedMask(fM)
             # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
         else:
-            selx.SetFixedMask(fI != 0)
+            fM= fI != 0
 
         ## set initial transform parameter file name for mIT (not effected by bug: https://github.com/SuperElastix/SimpleElastix/issues/121)
         if os.path.isfile(FNit):
-            selx.SetInitialTransformParameterFileName(FNit)
             print selx.GetInitialTransformParameterFileName(),
 
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
-            selx.Execute()
+            seI= sitk.Elastix(fI, mI,
+                              fixed_mask= fm,
+                              parameter_object= pO,
+                              InitialTransformParameterFileName= FNit,
+                              NumberOfThreads= args.NoT,
+                              OutputDirectory= DNl,
+                              logToConsole= false,
+                              logToFile= true,
+                              logFileName= elastixLog);
         f.close()
 
         fMV= []
