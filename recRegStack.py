@@ -6,7 +6,6 @@
 
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
-import SimpleITK as sitk
 import itk
 import sys
 import argparse
@@ -108,7 +107,7 @@ def main():
 def preProPMs(pMs, FNpF, irpi, mI):
     NpMs= itk.ParameterObject.New() # https://github.com/InsightSoftwareConsortium/ITKElastix/blob/master/examples/2_RegistrationParameters.ipynb
     for i, pM in enumerate(pMs):
-        ## if initial transform parameter file name (not mIT) is provided read it with sitk and insert it as separate pM to workaround bug:
+        ## if initial transform parameter file name (not mIT) is provided read it with ITKElastix and insert it as separate pM to workaround bug:
         ## https://github.com/SuperElastix/SimpleElastix/issues/121
         ## works also for stfx which has no SetInitialTransformParameterFileName
         ## https://groups.google.com/forum/#!category-topic/elastix-imageregistration/simpleelastix/TlAbmFE8TPw
@@ -117,12 +116,11 @@ def preProPMs(pMs, FNpF, irpi, mI):
             if ITpMfn != 'NoInitialTransform':
                 pM['InitialTransformParametersFileName'] = ['NoInitialTransform']
                 if os.path.isfile(ITpMfn):
-                    NpMs.AddParameterMap(sitk.ReadParameterFile(ITpMfn))
+                    NpMs.AddParameterMap(itk.ParameterObject.New().ReadParameterFile(ITpMfn))
 
         ## override default parameter map with individual settings for the current image pair (*.pf.txt)
         if os.path.isfile(FNpF):
-            # pM.asdict().update(sitk.ReadParameterFile(FNpF).asdict()) # no effect: https://github.com/SuperElastix/SimpleElastix/issues/169
-            for key, value in sitk.ReadParameterFile(FNpF).items():
+            for key, value in itk.ParameterObject.New().ReadParameterFile(FNpF).items():
                 pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
             print FNpF,
 
@@ -130,9 +128,9 @@ def preProPMs(pMs, FNpF, irpi, mI):
         if 'Metric' in pM and 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
             FNmri= 'MovingRigidityImageName.mha'
             if irpi: # inverted
-                sitk.WriteImage(1 - sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
+                itk.imwrite(1 - itk.rescale_intensity_image_filter(itk.cast_image_filter(mI, ttype=(type(mI), itk.Image[itk.F, 2])), 0, 1), FNmri) # dark in orig. <=> deform less # normalize to [0;1]
             else: # not inverted
-                sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
+                itk.imwrite(itk.rescale_intensity_image_filter(itk.cast_image_filter(mI, ttype=(type(mI), itk.Image[itk.F, 2])), 0, 1), FNmri) # normalize to [0;1]
             pM['MovingRigidityImageName']= [FNmri]
 
         NpMs.AddParameterMap(pM)
@@ -176,14 +174,14 @@ def register(FNs, FNo, args, FNp= None):
         print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
         sys.stdout.flush() # essential with \r !
 
-        mI= sitk.ReadImage(FN1)
+        mI= itk.imread(FN1)
         PixelType= mI.GetPixelIDValue()
 
         if idx == 0:
             if FNp and os.path.exists(FNp): # exists() fails on None
                 FN0=FNp
             else:
-                sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
+                itk.imwrite(itk.cast_image_filter(mI, ttype=(mType, fType)), FNof)
                 print FN1, FNof, "plain copy"
                 continue
         else:
@@ -192,7 +190,7 @@ def register(FNs, FNo, args, FNp= None):
         if rI:
             fI= rI # reuse last rI (avoid re-read)
         else:
-            fI= sitk.ReadImage(FN0)
+            fI= itk.imread(FN0)
 
         print FN0, FN1,
 
@@ -201,19 +199,19 @@ def register(FNs, FNo, args, FNp= None):
         selx.SetParameterObject(preProPMs(pMs, FNpF, args.irpi, mI))
 
         if args.mask:
-            fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
+            fM= itk.Image(fI.GetSize(), itk.UC) # init with 0 acc. to docs
             fM.CopyInformation(fI) # essential for selx
             xmin= args.mask[0]
             xmax= args.mask[1]
             ymin= args.mask[2]
             ymax= args.mask[3]
             mR= fM[xmin:xmax, ymin:ymax] == 0
-            fM= sitk.Paste(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
-            fM= fM & (fI != 0) # also disregard empty regions in fI
-            selx.SetFixedMask(fM)
-            # sitk.WriteImage(fM, "fM_%03d.tif" % idx);
+            fM= itk.paste_image_filter(fM, mR, list(mR.GetSize()), [0, 0], list(map(int, mR.GetOrigin())))
+            fM= itk.mask_negated_image_filter(fM, fI) # also disregard empty regions in fI
+            selx.SetFixedMask(itk.cast_image_filter(fM, ttype=(rType, itk.Image[itk.UC, 2])))
+            # itk.imwrite(fM, "fM_%03d.tif" % idx);
         else:
-            selx.SetFixedMask(fI != 0)
+            selx.SetFixedMask(itk.cast_image_filter(fI, ttype=(rType, itk.Image[itk.UC, 2])))
 
         ## set initial transform parameter file name for mIT (not effected by bug: https://github.com/SuperElastix/SimpleElastix/issues/121)
         if os.path.isfile(FNit):
@@ -255,19 +253,19 @@ def register(FNs, FNo, args, FNp= None):
         print
 
         # Write result image
-        rI= sitk.Cast(selx.GetOutput(), PixelType) # rI should include cast to be comparable to those read from disk
-        sitk.WriteImage(rI, FNof)
+        rI= itk.cast_image_filter(selx.GetOutput(), ttype=(mType, fType)) # rI should include cast to be comparable to those read from disk
+        itk.imwrite(rI, FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
-            sfI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(sitk.Cast(fI, sitk.sitkFloat32)) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
-            smI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(selx.GetResultImage()) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
+            sfI= itk.cast_image_filter(itk.shift_scale_image_filter(itk.normalize_image_filter(itk.cast_image_filter(fI, ttype=(fType, mType))) * -1, 256/2, 1.99), ttype=(mType, fType)) # VERY sensitive to scale factor! first shifts then scales!
+            smI= itk.cast_image_filter(itk.shift_scale_image_filter(itk.normalize_image_filter(selx.GetResultImage()) * -1, 256/2, 1.99), ttype=(mType, fType)) # VERY sensitive to scale factor! first shifts then scales!
         
         if args.cb:
-            sitk.WriteImage(sitk.CheckerBoard(sfI, smI, args.cb), FNof.replace(".tif", "_cb.png"))
+            itk.imwrite(itk.checker_board_image_filter(sfI, smI, args.cb), FNof.replace(".tif", "_cb.png"))
             
         if args.co:
-            sitk.WriteImage(sitk.Compose(sfI, smI, sfI//2.+smI//2.), FNof.replace(".tif", "_co.png"))
+            itk.imwrite(itk.compose_image_filter(sfI, smI, sfI//2.+smI//2.), FNof.replace(".tif", "_co.png"))
 
 if __name__ == "__main__":
     main()
