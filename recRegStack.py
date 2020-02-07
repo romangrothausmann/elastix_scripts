@@ -7,6 +7,7 @@
 ## https://github.com/kaspermarstal/SimpleElastix/blob/master/Examples/Python/SimpleElastix.py
 
 import SimpleITK as sitk
+import itk
 import sys
 import argparse
 import os
@@ -150,7 +151,9 @@ def register(FNs, FNo, args, FNp= None):
         DNl = FNo + "/" + os.path.splitext(FN1)[0] + ".log/"
 
         # Instantiate SimpleElastix
-        selx = sitk.ElastixImageFilter() # https://github.com/SuperElastix/SimpleElastix/issues/99#issuecomment-308132783
+        fType = itk.Image[itk.UC, 2]
+        mType = itk.Image[itk.F, 2]
+        selx = itk.ElastixRegistrationMethod[fType, mType].New() # https://itkpythonpackage.readthedocs.io/en/latest/Quick_start_guide.html#instantiate-an-itk-object
         selx.LogToFileOff()
         selx.LogToConsoleOn()
         if args.NoT:
@@ -219,7 +222,7 @@ def register(FNs, FNo, args, FNp= None):
             print selx.GetInitialTransformParameterFileName(),
 
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
-            selx.Execute()
+            selx.Update()
         f.close()
 
         fMV= []
@@ -253,7 +256,7 @@ def register(FNs, FNo, args, FNp= None):
         print
 
         # Write result image
-        rI= sitk.Cast(selx.GetResultImage(), PixelType) # rI should include cast to be comparable to those read from disk
+        rI= sitk.Cast(selx.GetOutput(), PixelType) # rI should include cast to be comparable to those read from disk
         sitk.WriteImage(rI, FNof)
         # selx.WriteParameterFile(selx.GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
 
