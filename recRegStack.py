@@ -106,7 +106,7 @@ def main():
         register(FNs[start-1::-1], FNo, args, FNp) # backwards from start: https://stackoverflow.com/questions/509211/understanding-pythons-slice-notation#509377
 
 def preProPMs(pMs, FNpF, irpi, mI):
-    NpMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
+    NpMs= itk.ParameterObject.New() # https://github.com/InsightSoftwareConsortium/ITKElastix/blob/master/examples/2_RegistrationParameters.ipynb
     for i, pM in enumerate(pMs):
         ## if initial transform parameter file name (not mIT) is provided read it with sitk and insert it as separate pM to workaround bug:
         ## https://github.com/SuperElastix/SimpleElastix/issues/121
@@ -117,7 +117,7 @@ def preProPMs(pMs, FNpF, irpi, mI):
             if ITpMfn != 'NoInitialTransform':
                 pM['InitialTransformParametersFileName'] = ['NoInitialTransform']
                 if os.path.isfile(ITpMfn):
-                    NpMs.append(sitk.ReadParameterFile(ITpMfn))
+                    NpMs.AddParameterMap(sitk.ReadParameterFile(ITpMfn))
 
         ## override default parameter map with individual settings for the current image pair (*.pf.txt)
         if os.path.isfile(FNpF):
@@ -135,7 +135,7 @@ def preProPMs(pMs, FNpF, irpi, mI):
                 sitk.WriteImage(sitk.RescaleIntensity(sitk.Cast(mI, sitk.sitkFloat32), 0, 1), FNmri) # normalize to [0;1]
             pM['MovingRigidityImageName']= [FNmri]
 
-        NpMs.append(pM)
+        NpMs.AddParameterMap(pM)
     return(NpMs)
 
 def register(FNs, FNo, args, FNp= None):
@@ -162,9 +162,8 @@ def register(FNs, FNo, args, FNp= None):
         ## combine/append parameter maps for e.g. different transforms:
         ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
         ## http://simpleelastix.readthedocs.io/ParameterMaps.html
-        pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
-        for pf in args.PF:
-            pMs.append(selx.ReadParameterFile(pf)) # https://github.com/SuperElastix/SimpleElastix/blob/master/Code/Elastix/include/sitkElastixImageFilter.h#L119
+        pMs= itk.ParameterObject.New() # https://github.com/InsightSoftwareConsortium/ITKElastix/blob/master/examples/2_RegistrationParameters.ipynb
+        pMs.ReadParameterFile(args.PF) # reads multiple PFs! https://github.com/InsightSoftwareConsortium/ITKElastix/blob/8987e97c85983a2c99947b85b1e79301d38e0185/examples/2_RegistrationParameters.ipynb?short_path=3d874bd#L873
 
         if not os.path.exists(DNl):
             os.makedirs(DNl)
@@ -199,7 +198,7 @@ def register(FNs, FNo, args, FNp= None):
 
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mI)
-        selx.SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI))
+        selx.SetParameterObject(preProPMs(pMs, FNpF, args.irpi, mI))
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs
@@ -229,7 +228,7 @@ def register(FNs, FNo, args, FNp= None):
         fMVs= []
         cfMV= None
         nM= None
-        mN= len(pMs)-1 # reverse parsing, so start with last pM
+        mN= pMs.GetNumberOfParameterMaps() - 1 # reverse parsing, so start with last pM
         with open(elastixLogPath) as f:
             for line in reversed(f.readlines()): # "Final metric value" reported after table # https://stackoverflow.com/a/2301792
                 if not cfMV: # get "Final metric value" (fMV)
@@ -240,7 +239,7 @@ def register(FNs, FNo, args, FNp= None):
                         except:
                             raise Exception('Final metric value not found in "elastix.log".')
                         fMV.append(cfMV)
-                        nM= len(pMs[mN]['Metric']) # number of metrices, avoids to get nM from tabel headers
+                        nM= len(pMs.GetParameter(mN, 'Metric')) # number of metrices, avoids to get nM from tabel headers
                 else: # get line of fMV in table
                     cols= line.split()
                     if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
@@ -251,7 +250,7 @@ def register(FNs, FNo, args, FNp= None):
                         cfMV= None # continue for next transform
                         mN-=1 # previous pM
         f.close()
-        for i in range(len(pMs)-1,-1,-1):
+        for i in range(pMs.GetNumberOfParameterMaps()-1, -1, -1):
             print fMVs[i][0], fMV[i], fMVs[i][1:],
         print
 
