@@ -241,7 +241,7 @@ def register(FNs, FNo, args, FNp= None):
                         except:
                             raise Exception('Final metric value not found in "elastix.log".')
                         fMV.append(cfMV)
-                        nM= len(pMs.GetParameter(mN, 'Metric')) # number of metrices, avoids to get nM from tabel headers
+                        nM= len(pMs.GetParameter(0, 'Metric')) # number of metrices, avoids to get nM from tabel headers
                 else: # get line of fMV in table
                     cols= line.split()
                     if len(cols) > 1 and cols[0].isdigit(): # test if first col/word is an integer (last iter of table)
