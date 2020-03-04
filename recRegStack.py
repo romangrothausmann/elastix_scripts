@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 ## register a sieries of images concecutively
 ### register current image to the formerly transformed image
 ### use InitialTransformParametersFileName (if existant) as InitialTransform
@@ -77,10 +77,10 @@ def main():
         FNs= [x for x in FNs if x not in args.skip] # removing by index (less suitable): [FNs.pop(x) for x in args.skip]
     try:
         start= FNs.index(args.start) # can be used as FNs= FNs[start:] but not ideal for referencing idx-1
-    except ValueError, e:
+    except ValueError:
         start= 0
         if args.start:
-            print "Start not found!"
+            print("Start not found!")
     
     FNo= args.output # FNo= os.path.abspath(FNs[0]) + "/reg/"
     if not os.path.exists(FNo): # http://stackoverflow.com/questions/273192/how-to-check-if-a-directory-exists-and-create-it-if-necessary
@@ -113,7 +113,7 @@ def preProPMs(pMs, FNpF, irpi, mI):
         ## works also for stfx which has no SetInitialTransformParameterFileName
         ## https://groups.google.com/forum/#!category-topic/elastix-imageregistration/simpleelastix/TlAbmFE8TPw
         ITpMfn= pMs.GetParameter(i, 'InitialTransformParametersFileName') # ITpMfn is not necessarily FNit
-        print ITpMfn
+        print(ITpMfn)
         if ITpMfn:
             if ITpMfn != 'NoInitialTransform':
                 if os.path.isfile(ITpMfn):
@@ -127,7 +127,7 @@ def preProPMs(pMs, FNpF, irpi, mI):
         if os.path.isfile(FNpF):
             for key, value in itk.ParameterObject.New().ReadParameterFile(FNpF).items():
                 pM[key]= value # adds OR replaces existing item: https://stackoverflow.com/questions/6416131/python-add-new-item-to-dictionary#6416157
-            print FNpF,
+            print(FNpF),
 
         # ## auto creation of a RigidityImage
         # if 'Metric' in pM and 'TransformRigidityPenalty' in pM['Metric']: # pM.values():
@@ -185,7 +185,7 @@ def register(FNs, FNo, args, FNp= None):
                 FN0=FNp
             else:
                 itk.imwrite(itk.cast_image_filter(mI, ttype=(rType, iType)), FNof)
-                print FN1, FNof, "plain copy"
+                print(FN1, FNof, "plain copy")
                 continue
         else:
             FN0= FNo + "/" + os.path.splitext(FN0)[0] + ".tif"
@@ -196,7 +196,7 @@ def register(FNs, FNo, args, FNp= None):
             fI= itk.imread(FN0)
             fI= itk.cast_image_filter(fI, ttype=(type(fI), rType)) # ITKElastix needs mType == fType == rType
 
-        print FN0, FN1,
+        print(FN0, FN1),
 
         selx.SetFixedImage(fI) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mI)
@@ -220,7 +220,7 @@ def register(FNs, FNo, args, FNp= None):
         ## set initial transform parameter file name for mIT (not effected by bug: https://github.com/SuperElastix/SimpleElastix/issues/121)
         if os.path.isfile(FNit):
             selx.SetInitialTransformParameterFileName(FNit)
-            print selx.GetInitialTransformParameterFileName(),
+            print(selx.GetInitialTransformParameterFileName()),
 
         with open(elastixLogPath, 'w') as f, stdout_redirected(f):
             selx.Update()
@@ -253,8 +253,8 @@ def register(FNs, FNo, args, FNp= None):
                         mN-=1 # previous pM
         f.close()
         for i in range(pMs.GetNumberOfParameterMaps()-1, -1, -1):
-            print fMVs[i][0], fMV[i], fMVs[i][1:],
-        print
+            print(fMVs[i][0], fMV[i], fMVs[i][1:]),
+        print()
 
         # Write result image
         rI= selx.GetOutput()
