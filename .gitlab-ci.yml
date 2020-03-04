@@ -30,19 +30,9 @@ build:
                    .
     - docker push $IMAGE_TAG:system-latest
     ## 2nd stage build
-    - docker pull $IMAGE_TAG:builder-latest || true
-    - docker build --pull
-                   --cache-from $IMAGE_TAG:system-latest
-                   --cache-from $IMAGE_TAG:builder-latest
-                   --tag $IMAGE_TAG:builder-latest
-                   --target builder 
-                   .
-    - docker push $IMAGE_TAG:builder-latest
-    ## 3rd stage build
     - docker pull $IMAGE_TAG:test || true
     - docker build --pull
                    --cache-from $IMAGE_TAG:system-latest
-                   --cache-from $IMAGE_TAG:builder-latest
                    --cache-from $IMAGE_TAG:test
                    --tag $IMAGE_TAG:test
                    .

@@ -56,22 +56,17 @@ RUN mkdir -p ITKElastix_build && \
     make -j"$(nproc)" install
 
 
-################################################################################
-# install
-################################################################################
-FROM system as install
+RUN mkdir -p /usr/local/lib/python3.6/dist-packages/ && \
+    cp /ITK_build/Wrapping/Generators/Python/WrapITK.pth /usr/local/lib/python3.6/dist-packages/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     imagemagick python3-pip
 
 RUN pip3 install numpy
 
-COPY --from=builder /opt/itk/ /opt/itk/
-
-ENV PYTHONPATH "${PYTHONPATH}:/opt/itk/lib/python3/"
+ENV PYTHONPATH "${PYTHONPATH}:/opt/itk/lib/python3/:/opt/itkElastix/"
 
 COPY . /opt/elastix-CLIs/
 ENV PATH "/opt/elastix-CLIs/:${PATH}"
-ENV LD_LIBRARY_PATH "/opt/itk/lib/:${LD_LIBRARY_PATH}"
 
 WORKDIR /images
