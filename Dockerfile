@@ -46,7 +46,7 @@ RUN git clone https://github.com/InsightSoftwareConsortium/ITKElastix
 RUN mkdir -p ITKElastix_build && \
     cd ITKElastix_build && \
     cmake \
-    	  -DCMAKE_INSTALL_PREFIX=/opt/itkElastix/ \
+    	  -DCMAKE_INSTALL_PREFIX=/opt/itk/ \
 	  -DCMAKE_BUILD_TYPE=Debug \
 	  -DPYTHON_EXECUTABLE=/usr/bin/python3 \
 	  -DITK_DIR=/ITK_build \
@@ -67,7 +67,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install numpy
 
 COPY --from=builder /opt/itk/ /opt/itk/
-COPY --from=builder /opt/itkElastix/ /opt/itkElastix/
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/itk/lib/python3/"
 
