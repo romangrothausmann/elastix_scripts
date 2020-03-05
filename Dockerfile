@@ -29,7 +29,7 @@ RUN git clone --depth 1 -b v5.1rc01 https://github.com/InsightSoftwareConsortium
 RUN mkdir -p ITK_build && \
     cd ITK_build && \
     cmake \
-    	  -DCMAKE_INSTALL_PREFIX=/opt/itk/ \
+    	  -DCMAKE_INSTALL_PREFIX=/usr/ \
 	  -DCMAKE_BUILD_TYPE=Debug \
 	  -DBUILD_SHARED_LIBS=ON \
 	  -DBUILD_TESTING=OFF \
@@ -46,7 +46,7 @@ RUN git clone https://github.com/InsightSoftwareConsortium/ITKElastix
 RUN mkdir -p ITKElastix_build && \
     cd ITKElastix_build && \
     cmake \
-    	  -DCMAKE_INSTALL_PREFIX=/opt/itk/ \
+    	  -DCMAKE_INSTALL_PREFIX=/usr/ \
 	  -DCMAKE_BUILD_TYPE=Debug \
 	  -DPYTHON_EXECUTABLE=/usr/bin/python3 \
 	  -DITK_DIR=/ITK_build \
@@ -55,16 +55,15 @@ RUN mkdir -p ITKElastix_build && \
     make -j"$(nproc)" && \
     make -j"$(nproc)" install
 
+RUN ldconfig
 
-RUN mkdir -p /usr/local/lib/python3.6/dist-packages/ && \
-    cp /ITK_build/Wrapping/Generators/Python/WrapITK.pth /usr/local/lib/python3.6/dist-packages/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     imagemagick python3-pip
 
 RUN pip3 install numpy
 
-ENV PYTHONPATH "${PYTHONPATH}:/opt/itk/lib/python3/:/opt/itkElastix/"
+ENV PYTHONPATH "${PYTHONPATH}:/usr/lib/python3/"
 
 COPY . /opt/elastix-CLIs/
 ENV PATH "/opt/elastix-CLIs/:${PATH}"
