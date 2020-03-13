@@ -31,7 +31,7 @@ RUN mkdir -p ITK_build && \
     cmake \
     	  -DCMAKE_INSTALL_PREFIX=/usr/ \
 	  -DCMAKE_BUILD_TYPE=Debug \
-	  -DBUILD_SHARED_LIBS=ON \
+	  -DBUILD_SHARED_LIBS=OFF \
 	  -DBUILD_TESTING=OFF \
 	  -DPYTHON_EXECUTABLE=/usr/bin/python3 \
 	  -DITK_WRAP_PYTHON=ON \
