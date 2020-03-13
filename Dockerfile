@@ -15,10 +15,15 @@ FROM system as builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     ca-certificates `# essential for git over https` \
-    cmake \
+    curl \
     build-essential \
     python3-dev
 
+### cmake independent of distro version
+RUN curl -s https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh -o cmake.sh
+RUN sh cmake.sh --prefix=/usr --exclude-subdir --skip-license
+
+### ITK
 RUN git clone --depth 1 -b v5.1rc01 https://github.com/InsightSoftwareConsortium/ITK.git
 
 RUN mkdir -p ITK_build && \
