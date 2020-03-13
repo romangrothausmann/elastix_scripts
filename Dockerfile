@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates `# essential for git over https` \
     curl \
     build-essential \
-    python3-dev
+    python3-dev libomp-dev
 
 ### cmake independent of distro version
 RUN curl -s https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh -o cmake.sh
