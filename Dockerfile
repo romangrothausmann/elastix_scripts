@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates `# essential for git over https` \
     curl \
     build-essential \
-    python3-dev libomp-dev
+    python3-dev libomp-dev bison
 
 ### cmake independent of distro version
 RUN curl -s https://cmake.org/files/v3.17/cmake-3.17.0-rc3-Linux-x86_64.sh -o cmake.sh
