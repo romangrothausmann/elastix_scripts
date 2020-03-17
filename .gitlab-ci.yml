@@ -80,6 +80,8 @@ traImg.py:
 
 recRegStack:
   stage: test
+  tags:
+    - multicore # just to ensure use of same runner such that results are git identical
   script:
     - docker pull $IMAGE_TAG:test
     - apk update && apk upgrade && apk add --no-cache make coreutils imagemagick git # coreutils needed for seq that knows -f
