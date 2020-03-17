@@ -20,11 +20,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev libomp-dev
 
 ### cmake independent of distro version
-RUN curl -s https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh -o cmake.sh
+RUN curl -s https://cmake.org/files/v3.17/cmake-3.17.0-rc3-Linux-x86_64.sh -o cmake.sh
 RUN sh cmake.sh --prefix=/usr --exclude-subdir --skip-license
 
 ### ITK
-RUN git clone --depth 1 -b v5.1rc01 https://github.com/InsightSoftwareConsortium/ITK.git
+RUN git clone --depth 1 -b v5.1rc02 https://github.com/InsightSoftwareConsortium/ITK.git
 
 RUN mkdir -p ITK_build && \
     cd ITK_build && \
@@ -41,7 +41,7 @@ RUN mkdir -p ITK_build && \
 
 
 ### ITKElastix
-RUN git clone https://github.com/InsightSoftwareConsortium/ITKElastix
+RUN git clone https://github.com/InsightSoftwareConsortium/ITKElastix && cd ITKElastix && git checkout fd5530b8af003ca5f09968ca7a66d09f0ba43e5d
 
 RUN mkdir -p ITKElastix_build && \
     cd ITKElastix_build && \
