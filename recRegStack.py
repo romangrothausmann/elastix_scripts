@@ -144,8 +144,8 @@ def toLuminance(image):
     if nC == 1:
         return(image)
 
-    grey= sitk.Image(image.GetSize(), sitk.sitkFloat32) # image initialized with 0 by default
-    for i in range(nC):
+    grey= sitk.VectorIndexSelectionCast(image, 0, sitk.sitkFloat32) / nC # initialized with first channel
+    for i in range(1, nC):
         grey+= sitk.VectorIndexSelectionCast(image, i, sitk.sitkFloat32) / nC
 
     return(sitk.Cast(grey, sitk.VectorIndexSelectionCast(image, 0).GetPixelIDValue())) # remove vector before getting pixel type
