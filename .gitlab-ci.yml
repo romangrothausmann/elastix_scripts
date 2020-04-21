@@ -87,6 +87,7 @@ recRegStack:
     expire_in: 1 week
     paths:
       - tests/recRegStack/reg/avg.png
+      - tests/recRegStack/regRGB/avg.png
       - tests/recRegStack/reg2/avg.png
       - tests/recRegStack/reg3/avg.png
       - tests/recRegStack/reg4/avg.png

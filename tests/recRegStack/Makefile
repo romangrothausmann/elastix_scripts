@@ -1,5 +1,5 @@
 
-DI?=registry.gitlab.com/romangrothausmann/elastix_scripts/master:34cb4e3c
+DI?=registry.gitlab.com/romangrothausmann/elastix_scripts/master:latest
 
 SE?=/opt/SimpleElastix/
 export PYTHONPATH=$(SE)/lib/python/
@@ -18,6 +18,7 @@ FNs:= $(SLICES:%=sMR3006g_OT1_s%.png)
 
 
 test : reg reg/avg.png
+test : regRGB regRGB/avg.png
 test : reg2 reg2/avg.png
 test : reg3 reg3/avg.png
 test : reg4 reg4/avg.png
@@ -25,6 +26,7 @@ test : reg4 reg4/avg.png
 clean:
 	-rm -v reg*.out
 	-rm -rv reg/
+	-rm -rv regRGB/
 	-rm -rv reg2/
 	-rm -rv reg3/
 	-rm -rv reg4/
@@ -33,6 +35,11 @@ clean:
 reg : parameterFile.txt
 	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts $(DI) \
 	/elastix_scripts/recRegStack.py -n 32 -i "*_g8b.png" -o $@ -p $< | tee $@.out
+
+## reg all test images starting with the first, make sure to run make clean first to avoid continue behavior on last slice
+regRGB : parameterFile.txt
+	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts $(DI) \
+	/elastix_scripts/recRegStack.py -n 32 -i "*_rgb.png" -o $@ -p $< | tee $@.out
 
 ## test start and skip option
 reg/2016_12_02_0101_s02_06_g8b.tif : reg
