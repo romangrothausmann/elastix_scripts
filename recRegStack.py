@@ -137,6 +137,21 @@ def preProPMs(pMs, FNpF, irpi, mI):
         NpMs.append(pM)
     return(NpMs)
 
+
+def toLuminance(image):
+    nC= image.GetNumberOfComponentsPerPixel()
+
+    if nC == 1:
+        return(image)
+
+    grey= sitk.VectorIndexSelectionCast(image, 0, sitk.sitkFloat32) # initialized with first channel
+    for i in range(1, nC):
+        grey+= sitk.VectorIndexSelectionCast(image, i, sitk.sitkFloat32)
+    grey/= nC # divide by number of channels after summation for higher precision
+
+    return(sitk.Cast(grey, sitk.VectorIndexSelectionCast(image, 0).GetPixelIDValue())) # remove vector before getting pixel type
+    
+    
 def register(FNs, FNo, args, FNp= None):
     rI= None
     for idx, FN in enumerate(FNs):
@@ -174,7 +189,7 @@ def register(FNs, FNo, args, FNp= None):
         print("%5.1f%% (%d/%d)" % ((idx+1) * 100.0 / len(FNs), idx+1, len(FNs))),
         sys.stdout.flush() # essential with \r !
 
-        mI= sitk.ReadImage(FN1)
+        mI= toLuminance(sitk.ReadImage(FN1))
         PixelType= mI.GetPixelIDValue()
 
         if idx == 0:
@@ -190,7 +205,7 @@ def register(FNs, FNo, args, FNp= None):
         if rI:
             fI= rI # reuse last rI (avoid re-read)
         else:
-            fI= sitk.ReadImage(FN0)
+            fI= toLuminance(sitk.ReadImage(FN0))
 
         print FN0, FN1,
 
