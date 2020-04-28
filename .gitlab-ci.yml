@@ -94,6 +94,18 @@ recRegStack:
       - tests/recRegStack/reg4/avg.png
   <<: *test
 
+traImg:
+  stage: test
+  tags:
+    - multicore # just to ensure use of same runner such that results are git identical
+  artifacts:
+    when: on_failure
+    expire_in: 1 week
+    paths:
+      - tests/traImg/ini_tra.png
+      - tests/traImg/ini-16b_tra.png
+  <<: *test
+
 release:
   stage: release
   variables:
