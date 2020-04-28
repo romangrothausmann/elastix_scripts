@@ -3,6 +3,8 @@
 ################################################################################
 FROM ubuntu:latest as system
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python
 
@@ -11,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # builder
 ################################################################################
 FROM system as builder
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -42,6 +46,8 @@ RUN mkdir -p selx_build && \
 # install
 ################################################################################
 FROM system as install
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     imagemagick
