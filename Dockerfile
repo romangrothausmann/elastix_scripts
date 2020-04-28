@@ -3,6 +3,8 @@
 ################################################################################
 FROM ubuntu:latest as system
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3
 
@@ -11,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # builder
 ################################################################################
 FROM system as builder
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -63,6 +67,8 @@ RUN mkdir -p ITKElastix_build && \
 
 RUN ldconfig
 
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     imagemagick python3-pip
