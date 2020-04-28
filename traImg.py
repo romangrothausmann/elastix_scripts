@@ -37,10 +37,18 @@ def main():
     
     pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
     for pf in args.PF:
-        pMs.append(selx.ReadParameterFile(pf))
+        pM= selx.ReadParameterFile(pf)
+        # selx.PrintParameterMap(pM)
+        pMs.append(pM)
     stfx.SetTransformParameterMap(pMs)
-    
-    stfx.SetTransformParameter('Size', map(str, stfx.GetMovingImage().GetSize())) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+
+    ## set output size to input size if not specified in any PF
+    if any('Size' in pM for pM in pMs): # https://stackoverflow.com/questions/14790980/how-can-i-check-if-key-exists-in-list-of-dicts-in-python#14790997
+        size= next(pM for i,pM in enumerate(pMs) if 'Size' in pM)['Size']
+    else:
+        size= map(str, stfx.GetMovingImage().GetSize()) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+    stfx.SetTransformParameter('Size', size)
+
     stfx.Execute()
     sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), args.output)
 
