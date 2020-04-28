@@ -1,7 +1,7 @@
 ################################################################################
 # base system
 ################################################################################
-FROM ubuntu:latest as system
+FROM ubuntu:18.04 as system
 
 ARG DEBIAN_FRONTEND=noninteractive
 
