@@ -28,7 +28,7 @@ RUN curl -s https://cmake.org/files/v3.17/cmake-3.17.0-rc3-Linux-x86_64.sh -o cm
 RUN sh cmake.sh --prefix=/usr --exclude-subdir --skip-license
 
 ### ITK
-RUN git clone --depth 1 -b v5.1rc03 https://github.com/InsightSoftwareConsortium/ITK.git
+RUN git clone --depth 1 -b v5.1.0 https://github.com/InsightSoftwareConsortium/ITK.git
 
 RUN mkdir -p ITK_build && \
     cd ITK_build && \
