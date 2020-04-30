@@ -43,20 +43,18 @@ def main():
     stfx.SetTransformParameterMap(pMs)
 
     ## set output value to input value if not specified in any PF
-    for key in ['Size', 'Spacing', 'Index', 'Origin', 'Direction']:
+    dict= {
+        'Size':      map(str, stfx.GetMovingImage().GetSize()),
+        'Spacing':   map(str, stfx.GetMovingImage().GetSpacing()),
+        'Index':     map(str, [0, 0]),
+        'Origin':    map(str, stfx.GetMovingImage().GetOrigin()),
+        'Direction': map(str, stfx.GetMovingImage().GetDirection()),
+        }
+    for key in dict:
         if any(key in pM for pM in pMs): # https://stackoverflow.com/questions/14790980/how-can-i-check-if-key-exists-in-list-of-dicts-in-python#14790997
             val= next(pM for i,pM in enumerate(pMs) if key in pM)[key]
         else:
-            if key == 'Size':
-                val= map(str, stfx.GetMovingImage().GetSize())
-            if key == 'Spacing':
-                val= map(str, stfx.GetMovingImage().GetSpacing())
-            if key == 'Index':
-                val = map(str, [0, 0])
-            if key == 'Origin':
-                val = map(str, stfx.GetMovingImage().GetOrigin())
-            if key == 'Direction':
-                val = map(str, stfx.GetMovingImage().GetDirection()) 
+            val= dict[key]
         stfx.SetTransformParameter(key, val)
 
     stfx.Execute()
