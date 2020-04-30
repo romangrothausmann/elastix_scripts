@@ -49,6 +49,34 @@ def main():
         size= map(str, stfx.GetMovingImage().GetSize()) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
     stfx.SetTransformParameter('Size', size)
 
+    ## set output spacing to input spacing if not specified in any PF
+    if any('Spacing' in pM for pM in pMs): # https://stackoverflow.com/questions/14790980/how-can-i-check-if-key-exists-in-list-of-dicts-in-python#14790997
+        spacing= next(pM for i,pM in enumerate(pMs) if 'Spacing' in pM)['Spacing']
+    else:
+        spacing= map(str, stfx.GetMovingImage().GetSpacing()) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+    stfx.SetTransformParameter('Spacing', spacing)
+
+    ## set output index to input index if not specified in any PF
+    if any('Index' in pM for pM in pMs): # https://stackoverflow.com/questions/14790980/how-can-i-check-if-key-exists-in-list-of-dicts-in-python#14790997
+        index= next(pM for i,pM in enumerate(pMs) if 'Index' in pM)['Index']
+    else:
+        index= map(str, [0, 0]) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+    stfx.SetTransformParameter('Index', index)
+
+    ## set output origin to input origin if not specified in any PF
+    if any('Origin' in pM for pM in pMs): # https://stackoverflow.com/questions/14790980/how-can-i-check-if-key-exists-in-list-of-dicts-in-python#14790997
+        origin= next(pM for i,pM in enumerate(pMs) if 'Origin' in pM)['Origin']
+    else:
+        origin= map(str, stfx.GetMovingImage().GetOrigin()) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+    stfx.SetTransformParameter('Origin', origin)
+
+    ## set output direction to input direction if not specified in any PF
+    if any('Direction' in pM for pM in pMs): # https://stackoverflow.com/questions/14790980/how-can-i-check-if-key-exists-in-list-of-dicts-in-python#14790997
+        direction= next(pM for i,pM in enumerate(pMs) if 'Direction' in pM)['Direction']
+    else:
+        direction= map(str, stfx.GetMovingImage().GetDirection()) # https://github.com/SuperElastix/SimpleElastix/issues/119#issuecomment-319430741 # https://stackoverflow.com/questions/9525399/python-converting-from-tuple-to-string#9525452
+    stfx.SetTransformParameter('Direction', direction)
+
     stfx.Execute()
     sitk.WriteImage(sitk.Cast(stfx.GetResultImage(), PixelType), args.output)
 
