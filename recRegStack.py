@@ -107,14 +107,14 @@ def main():
 def preProPMs(pMs, FNpF, irpi, mI):
     NpMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
     for i, pM in enumerate(pMs):
-        ## if initial transform parameter file name (not mIT) is provided read it with sitk and insert it as separate pM to workaround bug:
+        ## if initial transform parameter file name is provided in global PFs (e.g. multi-reg like rigid+deform, not mITs) read it with sitk and insert it as separate pM to workaround bug:
         ## https://github.com/SuperElastix/SimpleElastix/issues/121
         ## works also for stfx which has no SetInitialTransformParameterFileName
         ## https://groups.google.com/forum/#!category-topic/elastix-imageregistration/simpleelastix/TlAbmFE8TPw
         if 'InitialTransformParametersFileName' in pM:
-            ITpMfn= pM['InitialTransformParametersFileName'][0] # ITpMfn is not necessarily FNit
+            ITpMfn= pM['InitialTransformParametersFileName'][0] # ITpMfn is not FNit (mIT)
             if ITpMfn != 'NoInitialTransform':
-                pM['InitialTransformParametersFileName'] = ['NoInitialTransform']
+                pM['InitialTransformParametersFileName'] = ['NoInitialTransform'] # or erase with pM.erase('InitialTransformParametersFileName')
                 if os.path.isfile(ITpMfn):
                     NpMs.append(sitk.ReadParameterFile(ITpMfn))
 
@@ -137,6 +137,21 @@ def preProPMs(pMs, FNpF, irpi, mI):
         NpMs.append(pM)
     return(NpMs)
 
+
+def toLuminance(image):
+    nC= image.GetNumberOfComponentsPerPixel()
+
+    if nC == 1:
+        return(image)
+
+    grey= sitk.VectorIndexSelectionCast(image, 0, sitk.sitkFloat32) # initialized with first channel
+    for i in range(1, nC):
+        grey+= sitk.VectorIndexSelectionCast(image, i, sitk.sitkFloat32)
+    grey/= nC # divide by number of channels after summation for higher precision
+
+    return(sitk.Cast(grey, sitk.VectorIndexSelectionCast(image, 0).GetPixelIDValue())) # remove vector before getting pixel type
+    
+    
 def register(FNs, FNo, args, FNp= None):
     rIod= None
     for idx, FN in enumerate(FNs):
@@ -156,7 +171,9 @@ def register(FNs, FNo, args, FNp= None):
         if args.NoT:
             selx.SetNumberOfThreads(args.NoT)
 
-        ## combine/append parameter maps for e.g. different transforms:
+        ## combine/append (global) parameter maps for e.g. different transforms (rigid + deform):
+        ## could be done with sikt.ReadParameterFile before calling register(...) to avoid calling ReadParameterFile() for every iteration
+        ## individual adjustments from iPFs (*.pf.txt) only have to be applied to pMs
         ## http://simpleelastix.readthedocs.io/NonRigidRegistration.html
         ## http://simpleelastix.readthedocs.io/ParameterMaps.html
         pMs= sitk.VectorOfParameterMap() # https://github.com/SuperElastix/SimpleElastix/blob/2a79d151894021c66dceeb2c8a64ff61506e7155/Wrapping/Common/SimpleITK_Common.i#L211
@@ -181,7 +198,7 @@ def register(FNs, FNo, args, FNp= None):
         smdm.SquaredDistanceOff()
         smdm.UseImageSpacingOff()
 
-        mI= sitk.ReadImage(FN1)
+        mI= toLuminance(sitk.ReadImage(FN1))
         PixelType= mI.GetPixelIDValue()
 
         mIod= otsu.Execute(mI)
@@ -200,7 +217,7 @@ def register(FNs, FNo, args, FNp= None):
         if rIod:
             fIod= rIod # reuse last rIod (avoid re-read)
         else:
-            fI= sitk.ReadImage(FN0)
+            fI= toLuminance(sitk.ReadImage(FN0))
             fIod= otsu.Execute(fI)
             fIod= smdm.Execute(fIod)
 
@@ -208,7 +225,7 @@ def register(FNs, FNo, args, FNp= None):
 
         selx.SetFixedImage(fIod) # https://github.com/kaspermarstal/SimpleElastix/blob/master/Code/IO/include/sitkImageFileReader.h#L73
         selx.SetMovingImage(mIod)
-        selx.SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI))
+        selx.SetParameterMap(preProPMs(pMs, FNpF, args.irpi, mI)) # apply individual adjustments from iPFs (*.pf.txt)
 
         if args.mask:
             fM= sitk.Image(fI.GetSize(), sitk.sitkUInt8) # init with 0 acc. to docs

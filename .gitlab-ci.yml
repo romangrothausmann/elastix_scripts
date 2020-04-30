@@ -66,10 +66,11 @@ build:
   stage: test
   script:
     - docker pull $IMAGE_TAG:test
-    - docker run --rm
-                 -v $(pwd):/images
-                 $IMAGE_TAG:test
-                 $CMD
+    - apk update && apk upgrade && apk add --no-cache make coreutils imagemagick git # coreutils needed for seq that knows -f
+    - make -C tests/$CI_JOB_NAME/ DI=$IMAGE_TAG:test  clean  test
+    ## test should result in the same file as stored by git
+    - git update-index -q --refresh
+    - git diff-index --exit-code HEAD --
   retry: 2
 
 recRegStack.py:
@@ -77,6 +78,21 @@ recRegStack.py:
 
 traImg.py:
   <<: *test00
+
+recRegStack:
+  stage: test
+  tags:
+    - multicore # just to ensure use of same runner such that results are git identical
+  artifacts:
+    when: on_failure
+    expire_in: 1 week
+    paths:
+      - tests/recRegStack/reg/avg.png
+      - tests/recRegStack/regRGB/avg.png
+      - tests/recRegStack/reg2/avg.png
+      - tests/recRegStack/reg3/avg.png
+      - tests/recRegStack/reg4/avg.png
+  <<: *test
 
 release:
   stage: release

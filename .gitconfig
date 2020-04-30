@@ -7,3 +7,6 @@
 ## ext. diff-cmd apparently ignored by gitk
 [diff "image"]
 	command =  sh -c 'echo $@ && tests/bin/img-diff.sh $1 $4 '
+
+[diff "lst"]
+      wordRegex = "[^_/\\.[:space:]]+"
