@@ -56,7 +56,7 @@ def main():
     
     parser = argparse.ArgumentParser(description=usage_text)
 
-    parser.add_argument("-i", "--inputPattern", dest="input", metavar='GlobPattern', required=True, help="Glob-pattern for input files.")
+    parser.add_argument("-i", "--inputPattern", dest="input", metavar='GlobPattern', nargs='+', required=True, help="single Glob-pattern for input files or list of input files.")
     parser.add_argument("-o", "--output", dest="output", metavar='DestDir', required=True, help="Output dir to save the result images in.")
     parser.add_argument("-p", "--paramFile", dest="PF", metavar='ParamFile', nargs='+', required=True, help="Elastix Parameter File(s)")
     parser.add_argument("-s", "--start", dest="start", required=False, help="Skip images before specified start-file.")
@@ -72,7 +72,11 @@ def main():
 
     args = parser.parse_args()
 
-    FNs= sorted( glob.glob(args.input) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
+    if len(args.input) == 1:
+        FNs= sorted( glob.glob(args.input[0]) ) # http://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered # http://stackoverflow.com/questions/3207219/how-to-list-all-files-of-a-directory-in-python#3215392
+    else:
+        FNs= args.input
+
     if args.skip:
         FNs= [x for x in FNs if x not in args.skip] # removing by index (less suitable): [FNs.pop(x) for x in args.skip]
     try:
