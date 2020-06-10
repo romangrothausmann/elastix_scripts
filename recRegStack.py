@@ -100,7 +100,7 @@ def main():
         ## register series forwards
         register(FNs[start:], FNo, args, FNp) # skip upto start
 
-    if args.back:
+    if args.back and start > 0:
     
         ## use previous registered image, if it exists, i.e. continue from forward run
         FNp= FNo + "/" + os.path.splitext(FNs[start])[0] + ".tif"
