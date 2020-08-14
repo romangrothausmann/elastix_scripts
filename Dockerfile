@@ -49,9 +49,6 @@ FROM system as install
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    imagemagick
-
 COPY --from=builder /opt/SimpleElastix/ /opt/SimpleElastix/
 ENV PYTHONPATH "${PYTHONPATH}:/opt/SimpleElastix/lib/python/"
 
