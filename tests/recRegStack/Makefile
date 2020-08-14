@@ -69,4 +69,4 @@ reg4 : parameterFile.txt
 		-b | tee $@.out
 
 %/avg.png : %
-	$(convertIM) -average $</*.tif $@
+	$(convertIM) -average $</*.tif -strip $@ # strip should be last: https://www.imagemagick.org/discourse-server/viewtopic.php?p=126037&sid=e48986f927c6221fcc55a8afd5402e6e#p126037
