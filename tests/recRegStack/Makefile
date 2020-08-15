@@ -17,11 +17,11 @@ FNs:= $(SLICES:%=sMR3006g_OT1_s%.png)
 .PHONY: test clean
 
 
-test : reg reg/avg.tif
-test : regRGB regRGB/avg.tif
-test : reg2 reg2/avg.tif
-test : reg3 reg3/avg.tif
-test : reg4 reg4/avg.tif
+test : reg reg/avg.png
+test : regRGB regRGB/avg.png
+test : reg2 reg2/avg.png
+test : reg3 reg3/avg.png
+test : reg4 reg4/avg.png
 
 clean:
 	-rm -v reg*.out
@@ -68,5 +68,5 @@ reg4 : parameterFile.txt
 		-s 2016_12_02_0101_s03_02_g8b.png `# starting such, that corresponding images are the same as in reg3` \
 		-b | tee $@.out
 
-%/avg.tif : %
+%/avg.png : %
 	$(convertIM) -average $</*.tif -strip $@ # strip should be last: https://www.imagemagick.org/discourse-server/viewtopic.php?p=126037&sid=e48986f927c6221fcc55a8afd5402e6e#p126037
