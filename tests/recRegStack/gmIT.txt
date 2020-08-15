@@ -1,0 +1,4 @@
+(CenterOfRotationPoint 400 400 )
+(NumberOfParameters 6 )
+(Transform "AffineTransform" )
+(TransformParameters  -1 0 0 -1 0 0 )

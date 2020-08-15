@@ -1,6 +1,7 @@
 (FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
 
+(RandomSeed 121212) // 121212 is default: http://lists.bigr.nl/pipermail/elastix/2011-May/000467.html
 // (UseDirectionCosines "true")
 
 (Registration "MultiResolutionRegistration")
@@ -39,8 +40,8 @@
 
 (NumberOfSpatialSamples 4000)
 // (NewSamplesEveryIteration "true")
-(ImageSampler "Random")
-// (ImageSampler "RandomSparseMask")
+// (ImageSampler "Random")
+(ImageSampler "RandomSparseMask")
 // (ImageSampler "RandomCoordinate")
 // (UseRandomSampleRegion "true")
 // (SampleRegionSize 50 50)
