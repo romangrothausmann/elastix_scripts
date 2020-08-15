@@ -39,8 +39,8 @@
 
 (NumberOfSpatialSamples 4000)
 // (NewSamplesEveryIteration "true")
-(ImageSampler "Random")
-// (ImageSampler "RandomSparseMask")
+// (ImageSampler "Random")
+(ImageSampler "RandomSparseMask")
 // (ImageSampler "RandomCoordinate")
 // (UseRandomSampleRegion "true")
 // (SampleRegionSize 50 50)
