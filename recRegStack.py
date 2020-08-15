@@ -158,7 +158,6 @@ def toLuminance(image):
     
 def register(FNs, FNo, args, FNp= None):
     rI= None
-    FNlt=""
     for idx, FN in enumerate(FNs):
         FN0= FNs[(idx - 1) % len(FNs)] # http://stackoverflow.com/questions/2167868/getting-next-element-while-cycling-through-a-list#2167962
         FN1= FN
@@ -180,8 +179,7 @@ def register(FNs, FNo, args, FNp= None):
 
         if idx == 0:
             if FNp and os.path.exists(FNp): # exists() fails on None
-                FN0= FNp
-                FNlt= FNo + "/" + os.path.splitext(FN0)[0] + ".log" + "/TransformParameters.0.txt"
+                FN0=FNp
             else:
                 sitk.WriteImage(sitk.Cast(mI, PixelType), FNof)
                 print FN1, FNof, "plain copy"
@@ -201,8 +199,7 @@ def register(FNs, FNo, args, FNp= None):
             itFNs.append(FNit);
         else:
             itFNs.append('NoInitialTransform')
-        if os.path.isfile(FNlt): # use last TransformFile if it exists
-            itFNs.append(FNlt)
+        itFNs.append('NoInitialTransform')
 
         selx= []
         fMV= []
@@ -293,7 +290,6 @@ def register(FNs, FNo, args, FNp= None):
         rI= sitk.Cast(selx[iMin].GetResultImage(), PixelType) # rI should include cast to be comparable to those read from disk
         sitk.WriteImage(rI, FNof)
         # selx[iMin].WriteParameterFile(selx[iMin].GetTransformParameterMap(0), FNt1) # written by elastix (in more detail) to: DNl + "/TransformParameters.0.txt"
-        FNlt= DNl + "/TransformParameters.0.txt"
 
         if args.cb or args.co:
             sfI= sitk.Cast(sitk.ShiftScale(sitk.Normalize(sitk.Cast(fI, sitk.sitkFloat32)) * -1, 256/2, 1.99), sitk.sitkUInt8) # VERY sensitive to scale factor! first shifts then scales!
