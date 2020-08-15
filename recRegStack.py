@@ -64,6 +64,7 @@ def main():
     parser.add_argument("-f", "--forward", dest="forw", required=False, action='store_true', help="Continue forwards from start-file (-s).")
     parser.add_argument("-b", "--back", dest="back", required=False, action='store_true', help="Continue backwards from start-file (-s).")
     parser.add_argument("-m", "--mask", dest="mask", metavar='boxMask', nargs=4, type=int, help="extent of rectangular mask (xmin, xmax, ymin, ymax).")
+    parser.add_argument("-mIT", "--manualInitialTransform", dest="mIT", metavar='FILE', help="global manual initial transform Parameter File")
     parser.add_argument("-cb", "--checkerboard", dest="cb", nargs=2, type=int, help="create checkerboard image (x-tiles, y-tiles).")
     parser.add_argument("-co", "--compose", dest="co", action='store_true', help="compose images into magenta, green.")
     parser.add_argument("-irpi", "--invertRigidityPenaltyImage", dest="irpi", action='store_true', help="invert TransformRigidityPenalty image.")
@@ -199,7 +200,9 @@ def register(FNs, FNo, args, FNp= None):
             itFNs.append(FNit);
         else:
             itFNs.append('NoInitialTransform')
-        itFNs.append('NoInitialTransform')
+            
+        if args.mIT:
+            itFNs.append(args.mIT)
 
         selx= []
         fMV= []
