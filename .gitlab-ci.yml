@@ -87,11 +87,11 @@ recRegStack:
     when: on_failure
     expire_in: 1 week
     paths:
-      - tests/recRegStack/reg/avg.png
-      - tests/recRegStack/regRGB/avg.png
-      - tests/recRegStack/reg2/avg.png
-      - tests/recRegStack/reg3/avg.png
-      - tests/recRegStack/reg4/avg.png
+      - tests/recRegStack/reg/avg.tif
+      - tests/recRegStack/regRGB/avg.tif
+      - tests/recRegStack/reg2/avg.tif
+      - tests/recRegStack/reg3/avg.tif
+      - tests/recRegStack/reg4/avg.tif
   <<: *test
 
 traImg:
