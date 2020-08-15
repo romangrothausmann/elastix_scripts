@@ -5,8 +5,8 @@ AE=`compare -metric AE $1 $2 NULL: 2>&1` # compare pirnts AE on stderr
 echo 1>&2
 echo "AE (no fuzz): $AE" 1>&2
 
-convert -normalize $1 -normalize $2 -clone 0 -combine png:- \
-    | montage -geometry +4+4 <( convert $1 -normalize -depth 8 png:- ) - <( convert $2 -normalize -depth 8 png:- ) png:- \
+convert $1 $2 -clone 0 -combine png:- \
+    | montage -geometry +4+4 $1 - $2 png:- \
     | display -title "$2" -resize 1920x1080 -
 
 echo -n "AE (fuzz): " 1>&2  # compare returns AE on stderr and as a return value
