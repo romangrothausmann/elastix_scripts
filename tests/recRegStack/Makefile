@@ -48,6 +48,7 @@ reg2 : parameterFile.txt | reg/2016_12_02_0101_s02_06_g8b.tif
 	test -e reg/2016_12_02_0101_s02_06_g8b.tif && ln -sf ../reg/2016_12_02_0101_s02_06_g8b.tif reg2/
 	docker run -t --rm --user `id -u`:`id -g` -v $$(pwd):/images -v $$(pwd)/../..:/elastix_scripts $(DI) \
 	/elastix_scripts/recRegStack.py -n 32 -i "*_g8b.png" -o $@ -p $< \
+		-mIT gmIT.txt \
 		-s 2016_12_02_0101_s03_01_g8b.png \
 		-f \
 		-S 2016_12_02_0101_s03_02_g8b.png 2016_12_02_0101_s03_03_g8b.png 2016_12_02_0101_s03_04_g8b.png | tee $@.out
